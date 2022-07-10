@@ -380,13 +380,13 @@ class JigsawWidgetState extends State<JigsawWidget> {
                 ),
               ),
               Container(
-                  color: Colors.white,
-                  height: 120,
+                  color: Colors.black26,
+                  height: 100,
                   child: CarouselSlider(
                     carouselController: _carouselController,
                     options: CarouselOptions(
                       initialPage: _index ?? 0,
-                      height: 80,
+                      height: 90,
                       aspectRatio: 1,
                       viewportFraction: 0.3,
                       enlargeCenterPage: true,
@@ -423,8 +423,8 @@ class JigsawPainterBackground extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final Paint paint = Paint()
       ..style = outlineCanvas ? PaintingStyle.stroke : PaintingStyle.fill
-      ..color = Colors.black12
-      ..strokeWidth = 2
+      ..color = Colors.green
+      ..strokeWidth = 7
       ..strokeCap = StrokeCap.round;
     final Path path = Path();
 
@@ -519,9 +519,9 @@ class JigsawBlokPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final Paint paint = Paint()
-      ..color = imageBox.isDone ? Colors.white.withOpacity(0.2) : Colors.white
+      ..color = imageBox.isDone ? Colors.white.withOpacity(0.2) : Colors.black12
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 2;
+      ..strokeWidth = 4;
 
     canvas.drawPath(
         getPiecePath(size, imageBox.radiusPoint, imageBox.offsetCenter,
@@ -532,7 +532,7 @@ class JigsawBlokPainter extends CustomPainter {
       final Paint paintDone = Paint()
         ..color = Colors.white.withOpacity(0.2)
         ..style = PaintingStyle.fill
-        ..strokeWidth = 2;
+        ..strokeWidth = 4;
       canvas.drawPath(
           getPiecePath(size, imageBox.radiusPoint, imageBox.offsetCenter,
               imageBox.posSide),
