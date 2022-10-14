@@ -391,6 +391,9 @@ class JigsawWidgetState extends State<JigsawWidget> {
                     enableInfiniteScroll: false,
                     viewportFraction: 0.2,
                     enlargeCenterPage: true,
+                    autoPlay: true,
+                    autoPlayInterval: const Duration(milliseconds: 1500),
+                    pauseAutoPlayOnTouch: true,
                     enlargeStrategy: CenterPageEnlargeStrategy.height,
                     onPageChanged: (index, reason) => setState(() {
                       _index = index;
