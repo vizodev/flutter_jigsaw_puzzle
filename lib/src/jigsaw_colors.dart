@@ -20,7 +20,7 @@ class JigsawColors {
 class JigsawDesign {
   const JigsawDesign._();
 
-  static const strokeCanvasWidth = 7.0;
+  static const strokeCanvasWidth = 5.5;
   static const strokePieceWidth = 4.0;
 }
 

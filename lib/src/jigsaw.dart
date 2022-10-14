@@ -373,14 +373,14 @@ class JigsawWidgetState extends State<JigsawWidget> {
                   carouselController: _carouselController,
                   options: CarouselOptions(
                     initialPage: _index ?? 0,
-                    height: 90,
+                    height: 110,
                     aspectRatio: 1,
+                    enableInfiniteScroll: false,
                     viewportFraction: 0.3,
                     enlargeCenterPage: true,
-                    onPageChanged: (index, reason) {
+                    onPageChanged: (index, reason) => setState(() {
                       _index = index;
-                      setState(() {});
-                    },
+                    }),
                   ),
                   // TODO: not show done blocks!
                   items: blockNotDone.map((block) {
@@ -462,7 +462,7 @@ class JigsawPainterBackground extends CustomPainter {
       ..style = outlineCanvas ? PaintingStyle.stroke : PaintingStyle.fill
       ..color =
           outlineCanvas ? JigsawColors.canvasOutline : JigsawColors.canvasBg
-      ..strokeWidth = JigsawDesign.strokePieceWidth
+      ..strokeWidth = JigsawDesign.strokeCanvasWidth
       ..strokeCap = StrokeCap.round;
 
     final Path path = Path();
