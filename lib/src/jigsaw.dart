@@ -151,13 +151,9 @@ class JigsawWidgetState extends State<JigsawWidget> {
 
         final ClassJigsawPos jigsawPosSide = ClassJigsawPos(
           bottom: y == ySplitCount - 1 ? 0 : randomPosCol,
-          left: x == 0
-              ? 0
-              : -images[y][x - 1].jigsawBlockPainting.imageBox.posSide.right,
+          left: x == 0 ? 0 : -images[y][x - 1].widget.imageBox.posSide.right,
           right: x == xSplitCount - 1 ? 0 : randomPosRow,
-          top: y == 0
-              ? 0
-              : -images[y - 1][x].jigsawBlockPainting.imageBox.posSide.bottom,
+          top: y == 0 ? 0 : -images[y - 1][x].widget.imageBox.posSide.bottom,
         );
 
         double xAxis = widthPerBlock * x;
@@ -206,7 +202,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
 
         images[y].add(
           BlockClass(
-              jigsawBlockPainting: JigsawBlockPainting(
+              widget: JigsawBlockPainting(
                 imageBox: imageBox,
               ),
               offset: offset,
@@ -227,12 +223,10 @@ class JigsawWidgetState extends State<JigsawWidget> {
     return ValueListenableBuilder(
         valueListenable: blocksNotifier,
         builder: (context, List<BlockClass> blocks, child) {
-          final List<BlockClass> blockNotDone = blocks
-              .where((block) => !block.jigsawBlockPainting.imageBox.isDone)
-              .toList();
-          final List<BlockClass> blockDone = blocks
-              .where((block) => block.jigsawBlockPainting.imageBox.isDone)
-              .toList();
+          final List<BlockClass> blockNotDone =
+              blocks.where((block) => !block.widget.imageBox.isDone).toList();
+          final List<BlockClass> blockDone =
+              blocks.where((block) => block.widget.imageBox.isDone).toList();
 
           return Column(
             mainAxisSize: MainAxisSize.min,
@@ -281,10 +275,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
                                   blockNotDone[_index!].offsetDefault)
                               .distance <
                           distanceThreshold) {
-                        blockNotDone[_index!]
-                            .jigsawBlockPainting
-                            .imageBox
-                            .isDone = true;
+                        blockNotDone[_index!].widget.imageBox.isDone = true;
 
                         blockNotDone[_index!].offset =
                             blockNotDone[_index!].offsetDefault;
@@ -331,7 +322,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
                                           left: map.offset.dx,
                                           top: map.offset.dy,
                                           child: Container(
-                                            child: map.jigsawBlockPainting,
+                                            child: map.widget,
                                           ),
                                         );
                                       },
@@ -346,10 +337,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
                                             offstage: !(_index == map.key),
                                             child: GestureDetector(
                                               onTapDown: (details) {
-                                                if (map
-                                                    .value
-                                                    .jigsawBlockPainting
-                                                    .imageBox
+                                                if (map.value.widget.imageBox
                                                     .isDone) {
                                                   return;
                                                 }
@@ -360,8 +348,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
                                                 });
                                               },
                                               child: Container(
-                                                child: map
-                                                    .value.jigsawBlockPainting,
+                                                child: map.value.widget,
                                               ),
                                             ),
                                           ),
@@ -397,13 +384,12 @@ class JigsawWidgetState extends State<JigsawWidget> {
                   ),
                   // TODO: not show done blocks!
                   items: blockNotDone.map((block) {
-                    final Size sizeBlock =
-                        block.jigsawBlockPainting.imageBox.size;
+                    final Size sizeBlock = block.widget.imageBox.size;
                     return FittedBox(
                       child: SizedBox(
                         width: sizeBlock.width,
                         height: sizeBlock.height,
-                        child: block.jigsawBlockPainting,
+                        child: block.widget,
                       ),
                     );
                   }).toList(),
@@ -420,12 +406,14 @@ class BlockClass {
   BlockClass({
     required this.offset,
     required this.offsetDefault,
-    required this.jigsawBlockPainting,
+    required this.widget,
   });
 
   Offset offset;
   Offset offsetDefault;
-  JigsawBlockPainting jigsawBlockPainting;
+
+  /// [JigsawBlockPainting]
+  JigsawBlockPainting widget;
 }
 
 class ImageBox {
@@ -468,19 +456,18 @@ class JigsawPainterBackground extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final Paint backgroundPaint = Paint()
       ..style = outlineCanvas ? PaintingStyle.stroke : PaintingStyle.fill
-      ..color = outlineCanvas
-          ? JigsawColors.canvasOutline
-          : JigsawColors.canvasBg
+      ..color =
+          outlineCanvas ? JigsawColors.canvasOutline : JigsawColors.canvasBg
       ..strokeWidth = JigsawDesign.strokeCanvasWidth
       ..strokeCap = StrokeCap.round;
 
     final Path path = Path();
     blocks.forEach((element) {
       final Path pathTemp = getPiecePath(
-        element.jigsawBlockPainting.imageBox.size,
-        element.jigsawBlockPainting.imageBox.radiusPoint,
-        element.jigsawBlockPainting.imageBox.offsetCenter,
-        element.jigsawBlockPainting.imageBox.posSide,
+        element.widget.imageBox.size,
+        element.widget.imageBox.radiusPoint,
+        element.widget.imageBox.offsetCenter,
+        element.widget.imageBox.posSide,
       );
 
       path.addPath(pathTemp, element.offsetDefault);
