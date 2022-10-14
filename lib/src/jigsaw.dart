@@ -42,7 +42,6 @@ class JigsawPuzzle extends StatefulWidget {
 }
 
 class _JigsawPuzzleState extends State<JigsawPuzzle> {
-  
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -286,6 +285,11 @@ class JigsawWidgetState extends State<JigsawWidget> {
                       }
 
                       if (_index == null) {
+                        /// When no widget owns this controller
+                        if (_carouselController?.ready == false) {
+                          return;
+                        }
+
                         _carouselController
                             ?.nextPage(
                                 duration: const Duration(milliseconds: 1))
