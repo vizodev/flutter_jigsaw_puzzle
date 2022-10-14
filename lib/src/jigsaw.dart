@@ -382,12 +382,16 @@ class JigsawWidgetState extends State<JigsawWidget> {
                   carouselController: _carouselController,
                   options: CarouselOptions(
                     scrollPhysics: const AlwaysScrollableScrollPhysics(),
-                    initialPage: _index ?? 0,
+                    initialPage: _index ??
+                        (blockNotDone.length >= 4
+                            ? (blockNotDone.length / 2).floor()
+                            : 0),
                     height: 110,
                     aspectRatio: 1,
                     enableInfiniteScroll: false,
                     viewportFraction: 0.2,
-                    enlargeCenterPage: false,
+                    enlargeCenterPage: true,
+                    enlargeStrategy: CenterPageEnlargeStrategy.height,
                     onPageChanged: (index, reason) => setState(() {
                       _index = index;
                     }),
