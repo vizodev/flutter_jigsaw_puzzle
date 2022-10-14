@@ -14,9 +14,9 @@ import 'package:flutter_jigsaw_puzzle/src/error.dart';
 class JigsawPuzzle extends StatefulWidget {
   const JigsawPuzzle({
     Key? key,
+    required this.puzzleKey,
     required this.gridSize,
     required this.image,
-    required this.puzzleKey,
     this.onFinished,
     this.onBlockSuccess,
     this.outlineCanvas = true,
@@ -24,14 +24,14 @@ class JigsawPuzzle extends StatefulWidget {
     this.snapSensitivity = .5,
   }) : super(key: key);
 
+  final GlobalKey<JigsawWidgetState> puzzleKey;
   final int gridSize;
+  final AssetImage image;
   final Function()? onFinished;
   final Function()? onBlockSuccess;
-  final AssetImage image;
-  final bool autoStart;
   final bool outlineCanvas;
+  final bool autoStart;
   final double snapSensitivity;
-  final GlobalKey<JigsawWidgetState> puzzleKey;
 
   @override
   _JigsawPuzzleState createState() => _JigsawPuzzleState();
@@ -45,20 +45,12 @@ class _JigsawPuzzleState extends State<JigsawPuzzle> {
       children: [
         const SizedBox(height: 16),
         JigsawWidget(
-          callbackFinish: () {
-            if (widget.onFinished != null) {
-              widget.onFinished!();
-            }
-          },
-          callbackSuccess: () {
-            if (widget.onBlockSuccess != null) {
-              widget.onBlockSuccess!();
-            }
-          },
           key: widget.puzzleKey,
           gridSize: widget.gridSize,
-          snapSensitivity: widget.snapSensitivity,
+          callbackFinish: widget.onFinished,
+          callbackSuccess: widget.onBlockSuccess,
           outlineCanvas: widget.outlineCanvas,
+          snapSensitivity: widget.snapSensitivity,
           child: Image(
             fit: BoxFit.contain,
             image: widget.image,
@@ -73,17 +65,17 @@ class JigsawWidget extends StatefulWidget {
   const JigsawWidget({
     Key? key,
     required this.gridSize,
-    required this.snapSensitivity,
-    required this.child,
     this.callbackFinish,
     this.callbackSuccess,
     this.outlineCanvas = true,
+    required this.snapSensitivity,
+    required this.child,
   }) : super(key: key);
 
   final Widget child;
-  final Function()? callbackSuccess;
-  final Function()? callbackFinish;
   final int gridSize;
+  final Function()? callbackFinish;
+  final Function()? callbackSuccess;
   final bool outlineCanvas;
   final double snapSensitivity;
 
@@ -92,10 +84,10 @@ class JigsawWidget extends StatefulWidget {
 }
 
 class JigsawWidgetState extends State<JigsawWidget> {
-  final GlobalKey _globalKey = GlobalKey();
-  ui.Image? fullImage;
-  Size? size;
+  final GlobalKey _repaintKey = GlobalKey();
+  Size? screenSize;
 
+  ui.Image? fullImage;
   List<List<BlockClass>> images = <List<BlockClass>>[];
   ValueNotifier<List<BlockClass>> blocksNotifier =
       ValueNotifier<List<BlockClass>>(<BlockClass>[]);
@@ -104,11 +96,17 @@ class JigsawWidgetState extends State<JigsawWidget> {
   Offset _pos = Offset.zero;
   int? _index;
 
-  Future<ui.Image?> _getImageFromWidget() async {
-    final RenderRepaintBoundary boundary =
-        _globalKey.currentContext!.findRenderObject()! as RenderRepaintBoundary;
+  @override
+  void initState() {
+    _carouselController = CarouselController();
+    super.initState();
+  }
 
-    size = boundary.size;
+  Future<ui.Image?> _getImageFromWidget() async {
+    final RenderRepaintBoundary boundary = _repaintKey.currentContext!
+        .findRenderObject()! as RenderRepaintBoundary;
+
+    screenSize = boundary.size;
     final img = await boundary.toImage();
     final byteData = await img.toByteData(format: ImageByteFormat.png);
     final pngBytes = byteData?.buffer.asUint8List();
@@ -122,6 +120,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
   void reset() {
     images.clear();
     blocksNotifier = ValueNotifier<List<BlockClass>>(<BlockClass>[]);
+    // TODO: hack!
     // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
     blocksNotifier.notifyListeners();
     setState(() {});
@@ -152,11 +151,11 @@ class JigsawWidgetState extends State<JigsawWidget> {
           bottom: y == ySplitCount - 1 ? 0 : randomPosCol,
           left: x == 0
               ? 0
-              : -images[y][x - 1].jigsawBlockWidget.imageBox.posSide.right,
+              : -images[y][x - 1].jigsawBlockPainting.imageBox.posSide.right,
           right: x == xSplitCount - 1 ? 0 : randomPosRow,
           top: y == 0
               ? 0
-              : -images[y - 1][x].jigsawBlockWidget.imageBox.posSide.bottom,
+              : -images[y - 1][x].jigsawBlockPainting.imageBox.posSide.bottom,
         );
 
         double xAxis = widthPerBlock * x;
@@ -187,8 +186,9 @@ class JigsawWidgetState extends State<JigsawWidget> {
           heightPerBlockTemp.round(),
         );
 
-        final Offset offset = Offset(size!.width / 2 - widthPerBlockTemp / 2,
-            size!.height / 2 - heightPerBlockTemp / 2);
+        final Offset offset = Offset(
+            screenSize!.width / 2 - widthPerBlockTemp / 2,
+            screenSize!.height / 2 - heightPerBlockTemp / 2);
 
         final ImageBox imageBox = ImageBox(
           image: Image.memory(
@@ -204,7 +204,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
 
         images[y].add(
           BlockClass(
-              jigsawBlockWidget: JigsawBlockWidget(
+              jigsawBlockPainting: JigsawBlockPainting(
                 imageBox: imageBox,
               ),
               offset: offset,
@@ -221,21 +221,15 @@ class JigsawWidgetState extends State<JigsawWidget> {
   }
 
   @override
-  void initState() {
-    _carouselController = CarouselController();
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder(
         valueListenable: blocksNotifier,
         builder: (context, List<BlockClass> blocks, child) {
           final List<BlockClass> blockNotDone = blocks
-              .where((block) => !block.jigsawBlockWidget.imageBox.isDone)
+              .where((block) => !block.jigsawBlockPainting.imageBox.isDone)
               .toList();
           final List<BlockClass> blockDone = blocks
-              .where((block) => block.jigsawBlockWidget.imageBox.isDone)
+              .where((block) => block.jigsawBlockPainting.imageBox.isDone)
               .toList();
 
           return Column(
@@ -286,7 +280,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
                               .distance <
                           distanceThreshold) {
                         blockNotDone[_index!]
-                            .jigsawBlockWidget
+                            .jigsawBlockPainting
                             .imageBox
                             .isDone = true;
 
@@ -307,7 +301,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
                       children: [
                         if (blocks.isEmpty) ...[
                           RepaintBoundary(
-                            key: _globalKey,
+                            key: _repaintKey,
                             child: SizedBox(
                               height: double.maxFinite,
                               width: double.maxFinite,
@@ -319,8 +313,8 @@ class JigsawWidgetState extends State<JigsawWidget> {
                           offstage: blocks.isEmpty,
                           child: Container(
                             color: Colors.white,
-                            width: size?.width,
-                            height: size?.height,
+                            width: screenSize?.width,
+                            height: screenSize?.height,
                             child: CustomPaint(
                               painter: JigsawPainterBackground(
                                 blocks,
@@ -335,7 +329,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
                                           left: map.offset.dx,
                                           top: map.offset.dy,
                                           child: Container(
-                                            child: map.jigsawBlockWidget,
+                                            child: map.jigsawBlockPainting,
                                           ),
                                         );
                                       },
@@ -350,8 +344,11 @@ class JigsawWidgetState extends State<JigsawWidget> {
                                             offstage: !(_index == map.key),
                                             child: GestureDetector(
                                               onTapDown: (details) {
-                                                if (map.value.jigsawBlockWidget
-                                                    .imageBox.isDone) {
+                                                if (map
+                                                    .value
+                                                    .jigsawBlockPainting
+                                                    .imageBox
+                                                    .isDone) {
                                                   return;
                                                 }
 
@@ -361,8 +358,8 @@ class JigsawWidgetState extends State<JigsawWidget> {
                                                 });
                                               },
                                               child: Container(
-                                                child:
-                                                    map.value.jigsawBlockWidget,
+                                                child: map
+                                                    .value.jigsawBlockPainting,
                                               ),
                                             ),
                                           ),
@@ -380,82 +377,51 @@ class JigsawWidgetState extends State<JigsawWidget> {
                 ),
               ),
               Container(
-                  color: Colors.black26,
-                  height: 100,
-                  child: CarouselSlider(
-                    carouselController: _carouselController,
-                    options: CarouselOptions(
-                      initialPage: _index ?? 0,
-                      height: 90,
-                      aspectRatio: 1,
-                      viewportFraction: 0.3,
-                      enlargeCenterPage: true,
-                      onPageChanged: (index, reason) {
-                        _index = index;
-                        setState(() {});
-                      },
-                    ),
-                    items: blockNotDone.map((block) {
-                      final Size sizeBlock =
-                          block.jigsawBlockWidget.imageBox.size;
-                      return FittedBox(
-                        child: SizedBox(
-                          width: sizeBlock.width,
-                          height: sizeBlock.height,
-                          child: block.jigsawBlockWidget,
-                        ),
-                      );
-                    }).toList(),
-                  ))
+                color: Colors.black26,
+                height: 100,
+                child: CarouselSlider(
+                  carouselController: _carouselController,
+                  options: CarouselOptions(
+                    initialPage: _index ?? 0,
+                    height: 90,
+                    aspectRatio: 1,
+                    viewportFraction: 0.3,
+                    enlargeCenterPage: true,
+                    onPageChanged: (index, reason) {
+                      _index = index;
+                      setState(() {});
+                    },
+                  ),
+                  items: blockNotDone.map((block) {
+                    final Size sizeBlock =
+                        block.jigsawBlockPainting.imageBox.size;
+                    return FittedBox(
+                      child: SizedBox(
+                        width: sizeBlock.width,
+                        height: sizeBlock.height,
+                        child: block.jigsawBlockPainting,
+                      ),
+                    );
+                  }).toList(),
+                ),
+              )
             ],
           );
         });
   }
 }
 
-class JigsawPainterBackground extends CustomPainter {
-  JigsawPainterBackground(this.blocks, {required this.outlineCanvas});
-
-  List<BlockClass> blocks;
-  bool outlineCanvas;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final Paint paint = Paint()
-      ..style = outlineCanvas ? PaintingStyle.stroke : PaintingStyle.fill
-      ..color = Colors.green
-      ..strokeWidth = 7
-      ..strokeCap = StrokeCap.round;
-    final Path path = Path();
-
-    blocks.forEach((element) {
-      final Path pathTemp = getPiecePath(
-        element.jigsawBlockWidget.imageBox.size,
-        element.jigsawBlockWidget.imageBox.radiusPoint,
-        element.jigsawBlockWidget.imageBox.offsetCenter,
-        element.jigsawBlockWidget.imageBox.posSide,
-      );
-
-      path.addPath(pathTemp, element.offsetDefault);
-    });
-
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
-}
-
+///
 class BlockClass {
   BlockClass({
     required this.offset,
-    required this.jigsawBlockWidget,
     required this.offsetDefault,
+    required this.jigsawBlockPainting,
   });
 
   Offset offset;
   Offset offsetDefault;
-  JigsawBlockWidget jigsawBlockWidget;
+  JigsawBlockPainting jigsawBlockPainting;
 }
 
 class ImageBox {
@@ -487,30 +453,67 @@ class ClassJigsawPos {
   int top, bottom, left, right;
 }
 
-class JigsawBlockWidget extends StatefulWidget {
-  const JigsawBlockWidget({Key? key, required this.imageBox}) : super(key: key);
+///
+class JigsawPainterBackground extends CustomPainter {
+  JigsawPainterBackground(this.blocks, {required this.outlineCanvas});
+
+  List<BlockClass> blocks;
+  bool outlineCanvas;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final Paint paint = Paint()
+      ..style = outlineCanvas ? PaintingStyle.stroke : PaintingStyle.fill
+      ..color = Colors.green
+      ..strokeWidth = 7
+      ..strokeCap = StrokeCap.round;
+    final Path path = Path();
+
+    blocks.forEach((element) {
+      final Path pathTemp = getPiecePath(
+        element.jigsawBlockPainting.imageBox.size,
+        element.jigsawBlockPainting.imageBox.radiusPoint,
+        element.jigsawBlockPainting.imageBox.offsetCenter,
+        element.jigsawBlockPainting.imageBox.posSide,
+      );
+
+      path.addPath(pathTemp, element.offsetDefault);
+    });
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+}
+
+class JigsawBlockPainting extends StatefulWidget {
+  const JigsawBlockPainting({Key? key, required this.imageBox})
+      : super(key: key);
 
   final ImageBox imageBox;
 
   @override
-  _JigsawBlockWidgetState createState() => _JigsawBlockWidgetState();
+  _JigsawBlockPaintingState createState() => _JigsawBlockPaintingState();
 }
 
-class _JigsawBlockWidgetState extends State<JigsawBlockWidget> {
+class _JigsawBlockPaintingState extends State<JigsawBlockPainting> {
   @override
   Widget build(BuildContext context) {
     return ClipPath(
-      clipper: PuzzlePieceClipper(imageBox: widget.imageBox),
+      clipper: _PuzzlePieceClipper(imageBox: widget.imageBox),
       child: CustomPaint(
-        foregroundPainter: JigsawBlokPainter(imageBox: widget.imageBox),
+        foregroundPainter: _PuzzlePiecePainter(
+          imageBox: widget.imageBox,
+        ),
         child: widget.imageBox.image,
       ),
     );
   }
 }
 
-class JigsawBlokPainter extends CustomPainter {
-  JigsawBlokPainter({
+class _PuzzlePiecePainter extends CustomPainter {
+  _PuzzlePiecePainter({
     required this.imageBox,
   });
 
@@ -524,19 +527,22 @@ class JigsawBlokPainter extends CustomPainter {
       ..strokeWidth = 4;
 
     canvas.drawPath(
-        getPiecePath(size, imageBox.radiusPoint, imageBox.offsetCenter,
-            imageBox.posSide),
-        paint);
+      getPiecePath(
+          size, imageBox.radiusPoint, imageBox.offsetCenter, imageBox.posSide),
+      paint,
+    );
 
     if (imageBox.isDone) {
       final Paint paintDone = Paint()
         ..color = Colors.white.withOpacity(0.2)
         ..style = PaintingStyle.fill
         ..strokeWidth = 4;
+
       canvas.drawPath(
-          getPiecePath(size, imageBox.radiusPoint, imageBox.offsetCenter,
-              imageBox.posSide),
-          paintDone);
+        getPiecePath(size, imageBox.radiusPoint, imageBox.offsetCenter,
+            imageBox.posSide),
+        paintDone,
+      );
     }
   }
 
@@ -544,8 +550,8 @@ class JigsawBlokPainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
-class PuzzlePieceClipper extends CustomClipper<Path> {
-  PuzzlePieceClipper({
+class _PuzzlePieceClipper extends CustomClipper<Path> {
+  _PuzzlePieceClipper({
     required this.imageBox,
   });
 
@@ -615,7 +621,7 @@ Path getPiecePath(
 
   if (posSide.top != 0) {
     path.extendWithPath(
-      calculatePoint(Axis.horizontal, topLeft.dy,
+      _calculatePoint(Axis.horizontal, topLeft.dy,
           Offset(offsetCenter.dx, topMiddle), radiusPoint),
       Offset.zero,
     );
@@ -624,7 +630,7 @@ Path getPiecePath(
 
   if (posSide.right != 0) {
     path.extendWithPath(
-        calculatePoint(Axis.vertical, topRight.dx,
+        _calculatePoint(Axis.vertical, topRight.dx,
             Offset(rightMiddle, offsetCenter.dy), radiusPoint),
         Offset.zero);
   }
@@ -632,7 +638,7 @@ Path getPiecePath(
 
   if (posSide.bottom != 0) {
     path.extendWithPath(
-        calculatePoint(Axis.horizontal, bottomRight.dy,
+        _calculatePoint(Axis.horizontal, bottomRight.dy,
             Offset(offsetCenter.dx, bottomMiddle), -radiusPoint),
         Offset.zero);
   }
@@ -640,7 +646,7 @@ Path getPiecePath(
 
   if (posSide.left != 0) {
     path.extendWithPath(
-        calculatePoint(Axis.vertical, bottomLeft.dx,
+        _calculatePoint(Axis.vertical, bottomLeft.dx,
             Offset(leftMiddle, offsetCenter.dy), -radiusPoint),
         Offset.zero);
   }
@@ -651,7 +657,7 @@ Path getPiecePath(
   return path;
 }
 
-Path calculatePoint(
+Path _calculatePoint(
   Axis axis,
   double fromPoint,
   Offset point,
