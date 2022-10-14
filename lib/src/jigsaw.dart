@@ -21,6 +21,7 @@ class JigsawPuzzle extends StatefulWidget {
     required this.image,
     this.onFinished,
     this.onBlockSuccess,
+    this.carouselBlocksDirection = Axis.horizontal,
     this.outlineCanvas = true,
     this.autoStart = false,
     this.snapSensitivity = .5,
@@ -31,6 +32,7 @@ class JigsawPuzzle extends StatefulWidget {
   final AssetImage image;
   final Function()? onFinished;
   final Function()? onBlockSuccess;
+  final Axis carouselBlocksDirection;
   final bool outlineCanvas;
   final bool autoStart;
   final double snapSensitivity;
@@ -51,6 +53,7 @@ class _JigsawPuzzleState extends State<JigsawPuzzle> {
           gridSize: widget.gridSize,
           callbackFinish: widget.onFinished,
           callbackSuccess: widget.onBlockSuccess,
+          carouselDirection: widget.carouselBlocksDirection,
           outlineCanvas: widget.outlineCanvas,
           snapSensitivity: widget.snapSensitivity,
           child: Image(
@@ -69,7 +72,8 @@ class JigsawWidget extends StatefulWidget {
     required this.gridSize,
     this.callbackFinish,
     this.callbackSuccess,
-    this.outlineCanvas = true,
+    required this.carouselDirection,
+    required this.outlineCanvas,
     required this.snapSensitivity,
     required this.child,
   }) : super(key: key);
@@ -78,6 +82,7 @@ class JigsawWidget extends StatefulWidget {
   final int gridSize;
   final Function()? callbackFinish;
   final Function()? callbackSuccess;
+  final Axis carouselDirection;
   final bool outlineCanvas;
   final double snapSensitivity;
 
@@ -94,6 +99,8 @@ class JigsawWidgetState extends State<JigsawWidget> {
   ValueNotifier<List<BlockClass>> blocksNotifier =
       ValueNotifier<List<BlockClass>>(<BlockClass>[]);
   CarouselController? _carouselController;
+  Widget? get carouselBlocksWidget => _carouselBlocks;
+  Widget? _carouselBlocks;
 
   Offset _pos = Offset.zero;
   int? _index;
@@ -228,6 +235,40 @@ class JigsawWidgetState extends State<JigsawWidget> {
               blocks.where((block) => !block.blockIsDone).toList();
           final List<BlockClass> blockDone =
               blocks.where((block) => block.blockIsDone).toList();
+
+          _carouselBlocks = Container(
+            color: JigsawColors.blocksCarouselBg,
+            height: widget.carouselDirection == Axis.horizontal ? 110 : null,
+            width: widget.carouselDirection == Axis.vertical ? 110 : null,
+            child: CarouselSlider(
+              carouselController: _carouselController,
+              options: CarouselOptions(
+                scrollPhysics: const AlwaysScrollableScrollPhysics(),
+                initialPage: _index ??
+                    (blockNotDone.length >= 3
+                        ? (blockNotDone.length / 2).floor()
+                        : 0),
+                height: 110,
+                aspectRatio: 1,
+                enableInfiniteScroll: false,
+                viewportFraction: 0.2,
+                enlargeCenterPage: true,
+                enlargeStrategy: CenterPageEnlargeStrategy.height,
+                onPageChanged: (index, reason) => setState(() {
+                  _index = index;
+                }),
+              ),
+              items: blockNotDone.map((block) {
+                final sizeBlock = block.widget.imageBox.size;
+                return FittedBox(
+                  child: SizedBox.fromSize(
+                    size: sizeBlock,
+                    child: block.widget,
+                  ),
+                );
+              }).toList(),
+            ),
+          );
 
           return Column(
             mainAxisSize: MainAxisSize.min,
@@ -374,39 +415,10 @@ class JigsawWidgetState extends State<JigsawWidget> {
                   ),
                 ),
               ),
-              Container(
-                // TODO: vertical container?
-                color: JigsawColors.blocksCarouselBg,
-                height: 110,
-                child: CarouselSlider(
-                  carouselController: _carouselController,
-                  options: CarouselOptions(
-                    scrollPhysics: const AlwaysScrollableScrollPhysics(),
-                    initialPage: _index ??
-                        (blockNotDone.length >= 3
-                            ? (blockNotDone.length / 2).floor()
-                            : 0),
-                    height: 110,
-                    aspectRatio: 1,
-                    enableInfiniteScroll: false,
-                    viewportFraction: 0.2,
-                    enlargeCenterPage: true,
-                    enlargeStrategy: CenterPageEnlargeStrategy.height,
-                    onPageChanged: (index, reason) => setState(() {
-                      _index = index;
-                    }),
-                  ),
-                  items: blockNotDone.map((block) {
-                    final sizeBlock = block.widget.imageBox.size;
-                    return FittedBox(
-                      child: SizedBox.fromSize(
-                        size: sizeBlock,
-                        child: block.widget,
-                      ),
-                    );
-                  }).toList(),
-                ),
-              )
+
+              ///
+              if (widget.carouselDirection == Axis.horizontal)
+                carouselBlocksWidget ?? const SizedBox.shrink(),
             ],
           );
         });
