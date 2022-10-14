@@ -9,8 +9,9 @@ class JigsawColors {
   static const white = Colors.white;
 
   static const canvasBg = Color(0x274CAF50);
-  static const canvasOutline = Color(0xFF5A9CCE); // Color(0xFF4CAF50); // Colors.green
-  static const pieceOutline = Colors.black12;
+  static const canvasOutline =
+      Color(0xFF5A9CCE); // Color(0xFF4CAF50); // Colors.green
+  static Color pieceOutline = canvasOutline.withOpacity(0.7); // Colors.black12
   static const pieceOutlineDone = Color(0x54FFFFFF);
 
   static const blocksCarouselBg = Colors.black26;
@@ -23,4 +24,3 @@ class JigsawDesign {
   static const strokeCanvasWidth = 5.5;
   static const strokePieceWidth = 4.0;
 }
-

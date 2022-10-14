@@ -340,7 +340,6 @@ class JigsawWidgetState extends State<JigsawWidget> {
                                   if (blockNotDone.isNotEmpty)
                                     ...blockNotDone.asMap().entries.map(
                                       (map) {
-                                        print('key: ${map.key}');
                                         return Positioned(
                                           left: map.value.offset.dx,
                                           top: map.value.offset.dy,
@@ -378,7 +377,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
               Container(
                 // TODO: vertical container?
                 color: JigsawColors.blocksCarouselBg,
-                height: 100,
+                height: 110,
                 child: CarouselSlider(
                   carouselController: _carouselController,
                   options: CarouselOptions(
@@ -387,19 +386,17 @@ class JigsawWidgetState extends State<JigsawWidget> {
                     height: 110,
                     aspectRatio: 1,
                     enableInfiniteScroll: false,
-                    viewportFraction: 0.5,
+                    viewportFraction: 0.15,
                     enlargeCenterPage: true,
                     onPageChanged: (index, reason) => setState(() {
                       _index = index;
                     }),
                   ),
-                  // TODO: not show done blocks!
                   items: blockNotDone.map((block) {
-                    final Size sizeBlock = block.widget.imageBox.size;
+                    final sizeBlock = block.widget.imageBox.size;
                     return FittedBox(
-                      child: SizedBox(
-                        width: sizeBlock.width,
-                        height: sizeBlock.height,
+                      child: SizedBox.fromSize(
+                        size: sizeBlock,
                         child: block.widget,
                       ),
                     );
@@ -534,7 +531,7 @@ class _PuzzlePiecePainter extends CustomPainter {
           ? JigsawColors.pieceOutlineDone
           : JigsawColors.pieceOutline
       ..style = PaintingStyle.stroke
-      ..strokeWidth = JigsawDesign.strokePieceWidth;
+      ..strokeWidth = JigsawDesign.strokePieceWidth * 2;
 
     canvas.drawPath(
       getPiecePath(
