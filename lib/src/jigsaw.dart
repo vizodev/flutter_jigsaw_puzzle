@@ -244,9 +244,18 @@ class JigsawWidgetState extends State<JigsawWidget> {
                       }
 
                       if (_index == null) {
-                        _carouselController?.nextPage(
-                            duration: const Duration(microseconds: 600));
-                        setState(() {});
+                        _carouselController
+                            ?.nextPage(
+                                duration: const Duration(milliseconds: 1))
+                            .whenComplete(
+                          () {
+                            setState(() {});
+                            // NEW
+                            if (_index == null && blockNotDone.isNotEmpty) {
+                              _index = blockNotDone.indexOf(blockNotDone.first);
+                            }
+                          },
+                        );
                       }
                     },
                     onPointerMove: (event) {
@@ -331,6 +340,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
                                   if (blockNotDone.isNotEmpty)
                                     ...blockNotDone.asMap().entries.map(
                                       (map) {
+                                        print('key: ${map.key}');
                                         return Positioned(
                                           left: map.value.offset.dx,
                                           top: map.value.offset.dy,
@@ -372,11 +382,12 @@ class JigsawWidgetState extends State<JigsawWidget> {
                 child: CarouselSlider(
                   carouselController: _carouselController,
                   options: CarouselOptions(
+                    scrollPhysics: const AlwaysScrollableScrollPhysics(),
                     initialPage: _index ?? 0,
                     height: 110,
                     aspectRatio: 1,
                     enableInfiniteScroll: false,
-                    viewportFraction: 0.3,
+                    viewportFraction: 0.5,
                     enlargeCenterPage: true,
                     onPageChanged: (index, reason) => setState(() {
                       _index = index;
