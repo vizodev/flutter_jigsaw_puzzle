@@ -224,9 +224,9 @@ class JigsawWidgetState extends State<JigsawWidget> {
         valueListenable: blocksNotifier,
         builder: (context, List<BlockClass> blocks, child) {
           final List<BlockClass> blockNotDone =
-              blocks.where((block) => !block.widget.imageBox.isDone).toList();
+              blocks.where((block) => !block.blockIsDone).toList();
           final List<BlockClass> blockDone =
-              blocks.where((block) => block.widget.imageBox.isDone).toList();
+              blocks.where((block) => block.blockIsDone).toList();
 
           return Column(
             mainAxisSize: MainAxisSize.min,
@@ -275,7 +275,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
                                   blockNotDone[_index!].offsetDefault)
                               .distance <
                           distanceThreshold) {
-                        blockNotDone[_index!].widget.imageBox.isDone = true;
+                        blockNotDone[_index!].blockIsDone = true;
 
                         blockNotDone[_index!].offset =
                             blockNotDone[_index!].offsetDefault;
@@ -337,8 +337,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
                                             offstage: !(_index == map.key),
                                             child: GestureDetector(
                                               onTapDown: (details) {
-                                                if (map.value.widget.imageBox
-                                                    .isDone) {
+                                                if (map.value.blockIsDone) {
                                                   return;
                                                 }
 
@@ -414,6 +413,10 @@ class BlockClass {
 
   /// [JigsawBlockPainting]
   JigsawBlockPainting widget;
+
+  bool get blockIsDone => widget.imageBox.isDone;
+
+  set blockIsDone(bool value) => widget.imageBox.isDone = value;
 }
 
 class ImageBox {
@@ -531,7 +534,7 @@ class _PuzzlePiecePainter extends CustomPainter {
       final Paint paintDone = Paint()
         ..color = JigsawColors.pieceOutlineDone
         ..style = PaintingStyle.fill
-        ..strokeWidth = JigsawDesign.strokePieceWidth;
+        ..strokeWidth = JigsawDesign.strokeCanvasWidth;
 
       canvas.drawPath(
         getPiecePath(size, imageBox.radiusPoint, imageBox.offsetCenter,
