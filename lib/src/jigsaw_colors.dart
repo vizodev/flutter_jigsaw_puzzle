@@ -9,7 +9,7 @@ class JigsawColors {
   static const white = Colors.white;
 
   static const canvasBg = Color(0x274CAF50);
-  static const canvasOutline = Color(0xFF4CAF50); // Colors.green
+  static const canvasOutline = Color(0xFF4C89AF); // Color(0xFF4CAF50); // Colors.green
   static const pieceOutline = Colors.black12;
   static const pieceOutlineDone = Color(0x34FFFFFF);
 

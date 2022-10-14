@@ -202,11 +202,12 @@ class JigsawWidgetState extends State<JigsawWidget> {
 
         images[y].add(
           BlockClass(
-              widget: JigsawBlockPainting(
-                imageBox: imageBox,
-              ),
-              offset: offset,
-              offsetDefault: Offset(xAxis, yAxis)),
+            widget: JigsawBlockPainting(
+              imageBox: imageBox,
+            ),
+            offset: offset,
+            offsetDefault: Offset(xAxis, yAxis),
+          ),
         );
       }
     }
