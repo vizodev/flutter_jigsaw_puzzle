@@ -42,6 +42,7 @@ class JigsawPuzzle extends StatefulWidget {
 }
 
 class _JigsawPuzzleState extends State<JigsawPuzzle> {
+  
   @override
   Widget build(BuildContext context) {
     return Column(
