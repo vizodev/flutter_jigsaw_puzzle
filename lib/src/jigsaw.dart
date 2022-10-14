@@ -386,8 +386,8 @@ class JigsawWidgetState extends State<JigsawWidget> {
                     height: 110,
                     aspectRatio: 1,
                     enableInfiniteScroll: false,
-                    viewportFraction: 0.15,
-                    enlargeCenterPage: true,
+                    viewportFraction: 0.2,
+                    enlargeCenterPage: false,
                     onPageChanged: (index, reason) => setState(() {
                       _index = index;
                     }),
