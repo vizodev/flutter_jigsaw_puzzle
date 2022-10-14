@@ -462,7 +462,7 @@ class JigsawPainterBackground extends CustomPainter {
       ..style = outlineCanvas ? PaintingStyle.stroke : PaintingStyle.fill
       ..color =
           outlineCanvas ? JigsawColors.canvasOutline : JigsawColors.canvasBg
-      ..strokeWidth = JigsawDesign.strokeCanvasWidth
+      ..strokeWidth = JigsawDesign.strokePieceWidth
       ..strokeCap = StrokeCap.round;
 
     final Path path = Path();
