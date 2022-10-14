@@ -11,6 +11,8 @@ import 'package:image/image.dart' as ui;
 
 import 'package:flutter_jigsaw_puzzle/src/error.dart';
 
+import 'jigsaw_colors.dart';
+
 class JigsawPuzzle extends StatefulWidget {
   const JigsawPuzzle({
     Key? key,
@@ -312,7 +314,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
                         Offstage(
                           offstage: blocks.isEmpty,
                           child: Container(
-                            color: Colors.white,
+                            color: JigsawColors.white,
                             width: screenSize?.width,
                             height: screenSize?.height,
                             child: CustomPaint(
@@ -377,7 +379,8 @@ class JigsawWidgetState extends State<JigsawWidget> {
                 ),
               ),
               Container(
-                color: Colors.black26,
+                // TODO: vertical container?
+                color: JigsawColors.blocksCarouselBg,
                 height: 100,
                 child: CarouselSlider(
                   carouselController: _carouselController,
@@ -392,6 +395,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
                       setState(() {});
                     },
                   ),
+                  // TODO: not show done blocks!
                   items: blockNotDone.map((block) {
                     final Size sizeBlock =
                         block.jigsawBlockPainting.imageBox.size;
@@ -462,13 +466,15 @@ class JigsawPainterBackground extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final Paint paint = Paint()
+    final Paint backgroundPaint = Paint()
       ..style = outlineCanvas ? PaintingStyle.stroke : PaintingStyle.fill
-      ..color = Colors.green
-      ..strokeWidth = 7
+      ..color = outlineCanvas
+          ? JigsawColors.canvasOutline
+          : JigsawColors.canvasBg
+      ..strokeWidth = JigsawDesign.strokeCanvasWidth
       ..strokeCap = StrokeCap.round;
-    final Path path = Path();
 
+    final Path path = Path();
     blocks.forEach((element) {
       final Path pathTemp = getPiecePath(
         element.jigsawBlockPainting.imageBox.size,
@@ -480,7 +486,7 @@ class JigsawPainterBackground extends CustomPainter {
       path.addPath(pathTemp, element.offsetDefault);
     });
 
-    canvas.drawPath(path, paint);
+    canvas.drawPath(path, backgroundPaint);
   }
 
   @override
@@ -522,9 +528,11 @@ class _PuzzlePiecePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final Paint paint = Paint()
-      ..color = imageBox.isDone ? Colors.white.withOpacity(0.2) : Colors.black12
+      ..color = imageBox.isDone
+          ? JigsawColors.pieceOutlineDone
+          : JigsawColors.pieceOutline
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 4;
+      ..strokeWidth = JigsawDesign.strokePieceWidth;
 
     canvas.drawPath(
       getPiecePath(
@@ -534,9 +542,9 @@ class _PuzzlePiecePainter extends CustomPainter {
 
     if (imageBox.isDone) {
       final Paint paintDone = Paint()
-        ..color = Colors.white.withOpacity(0.2)
+        ..color = JigsawColors.pieceOutlineDone
         ..style = PaintingStyle.fill
-        ..strokeWidth = 4;
+        ..strokeWidth = JigsawDesign.strokePieceWidth;
 
       canvas.drawPath(
         getPiecePath(size, imageBox.radiusPoint, imageBox.offsetCenter,
