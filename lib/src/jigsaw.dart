@@ -278,7 +278,8 @@ class JigsawWidgetState extends State<JigsawWidget> {
           final _puzzleCanvas = AspectRatio(
             aspectRatio: 1,
             child: SizedBox(
-              width: double.infinity,
+              width: double.maxFinite,
+              height: double.maxFinite,
               child: Listener(
                 onPointerUp: (event) {
                   if (blockNotDone.isEmpty) {
@@ -357,7 +358,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
                           width: double.maxFinite,
                           child: widget.child,
                         ),
-                      )
+                      ),
                     ],
                     Offstage(
                       offstage: blocks.isEmpty,
@@ -391,7 +392,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
                                       left: map.value.offset.dx,
                                       top: map.value.offset.dy,
                                       child: Offstage(
-                                        offstage: !(_index == map.key),
+                                        offstage: _index != map.key,
                                         child: GestureDetector(
                                           onTapDown: (details) {
                                             if (map.value.blockIsDone) {
@@ -410,7 +411,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
                                       ),
                                     );
                                   },
-                                )
+                                ),
                             ],
                           ),
                         ),
