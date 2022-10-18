@@ -269,16 +269,16 @@ class JigsawWidgetState extends State<JigsawWidget> {
             ),
           );
 
-          final _puzzleCanvas = LayoutBuilder(builder: (context, constraints) {
-            return SizedBox.fromSize(
-              size: constraints.biggest,
-              child: Listener(
-                onPointerUp: (event) =>
-                    handleBlockPointerUp(event, blockNotDone),
-                onPointerMove: (event) =>
-                    handleBlockPointerMove(event, blockNotDone),
-                child: AspectRatio(
-                  aspectRatio: 1,
+          final _puzzleCanvas = AspectRatio(
+            aspectRatio: 1,
+            child: LayoutBuilder(builder: (context, constraints) {
+              return SizedBox.fromSize(
+                size: constraints.biggest,
+                child: Listener(
+                  onPointerUp: (event) =>
+                      handleBlockPointerUp(event, blockNotDone),
+                  onPointerMove: (event) =>
+                      handleBlockPointerMove(event, blockNotDone),
                   child: Stack(
                     children: [
                       if (blocks.isEmpty) ...[
@@ -356,9 +356,9 @@ class JigsawWidgetState extends State<JigsawWidget> {
                     ],
                   ),
                 ),
-              ),
-            );
-          });
+              );
+            }),
+          );
 
           // return ListView(
           //   physics: const NeverScrollableScrollPhysics(),
