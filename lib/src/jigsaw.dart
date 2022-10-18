@@ -243,6 +243,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
             child: CarouselSlider(
               carouselController: _carouselController,
               options: CarouselOptions(
+                scrollDirection: widget.carouselDirection,
                 scrollPhysics: const AlwaysScrollableScrollPhysics(),
                 initialPage: _index ??
                     (blockNotDone.length >= 3
@@ -270,162 +271,170 @@ class JigsawWidgetState extends State<JigsawWidget> {
             ),
           );
 
-          return Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              AspectRatio(
-                aspectRatio: 1,
-                child: SizedBox(
-                  width: double.infinity,
-                  child: Listener(
-                    onPointerUp: (event) {
-                      if (blockNotDone.isEmpty) {
-                        reset();
-                        widget.callbackFinish?.call();
-                      }
+          final _puzzleCanvas = AspectRatio(
+            aspectRatio: 1,
+            child: SizedBox(
+              width: double.infinity,
+              child: Listener(
+                onPointerUp: (event) {
+                  if (blockNotDone.isEmpty) {
+                    reset();
+                    widget.callbackFinish?.call();
+                  }
 
-                      if (_index == null) {
-                        /// When no widget owns this controller
-                        if (_carouselController?.ready == false) {
-                          return;
+                  if (_index == null) {
+                    /// When no widget owns this controller
+                    if (_carouselController?.ready == false) {
+                      return;
+                    }
+
+                    _carouselController
+                        ?.nextPage(duration: const Duration(milliseconds: 1))
+                        .whenComplete(
+                      () {
+                        setState(() {});
+                        // NEW
+                        if (_index == null && blockNotDone.isNotEmpty) {
+                          _index = blockNotDone.indexOf(blockNotDone.first);
                         }
+                      },
+                    );
+                  }
+                },
+                onPointerMove: (event) {
+                  if (_index == null) {
+                    return;
+                  }
+                  if (blockNotDone.isEmpty) {
+                    return;
+                  }
 
-                        _carouselController
-                            ?.nextPage(
-                                duration: const Duration(milliseconds: 1))
-                            .whenComplete(
-                          () {
-                            setState(() {});
-                            // NEW
-                            if (_index == null && blockNotDone.isNotEmpty) {
-                              _index = blockNotDone.indexOf(blockNotDone.first);
-                            }
-                          },
-                        );
-                      }
-                    },
-                    onPointerMove: (event) {
-                      if (_index == null) {
-                        return;
-                      }
-                      if (blockNotDone.isEmpty) {
-                        return;
-                      }
+                  final Offset offset = event.localPosition - _pos;
 
-                      final Offset offset = event.localPosition - _pos;
+                  blockNotDone[_index!].offset = offset;
 
-                      blockNotDone[_index!].offset = offset;
+                  const minSensitivity = 0;
+                  const maxSensitivity = 1;
+                  const maxDistanceThreshold = 20;
+                  const minDistanceThreshold = 1;
 
-                      const minSensitivity = 0;
-                      const maxSensitivity = 1;
-                      const maxDistanceThreshold = 20;
-                      const minDistanceThreshold = 1;
+                  final sensitivity = widget.snapSensitivity;
+                  final distanceThreshold = sensitivity *
+                          (maxSensitivity - minSensitivity) *
+                          (maxDistanceThreshold - minDistanceThreshold) +
+                      minDistanceThreshold;
 
-                      final sensitivity = widget.snapSensitivity;
-                      final distanceThreshold = sensitivity *
-                              (maxSensitivity - minSensitivity) *
-                              (maxDistanceThreshold - minDistanceThreshold) +
-                          minDistanceThreshold;
+                  if ((blockNotDone[_index!].offset -
+                              blockNotDone[_index!].offsetDefault)
+                          .distance <
+                      distanceThreshold) {
+                    blockNotDone[_index!].blockIsDone = true;
 
-                      if ((blockNotDone[_index!].offset -
-                                  blockNotDone[_index!].offsetDefault)
-                              .distance <
-                          distanceThreshold) {
-                        blockNotDone[_index!].blockIsDone = true;
+                    blockNotDone[_index!].offset =
+                        blockNotDone[_index!].offsetDefault;
 
-                        blockNotDone[_index!].offset =
-                            blockNotDone[_index!].offsetDefault;
+                    _index = null;
 
-                        _index = null;
+                    // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
+                    blocksNotifier.notifyListeners();
 
-                        // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
-                        blocksNotifier.notifyListeners();
+                    widget.callbackSuccess?.call();
+                  }
 
-                        widget.callbackSuccess?.call();
-                      }
-
-                      setState(() {});
-                    },
-                    child: Stack(
-                      children: [
-                        if (blocks.isEmpty) ...[
-                          RepaintBoundary(
-                            key: _repaintKey,
-                            child: SizedBox(
-                              height: double.maxFinite,
-                              width: double.maxFinite,
-                              child: widget.child,
-                            ),
-                          )
-                        ],
-                        Offstage(
-                          offstage: blocks.isEmpty,
-                          child: Container(
-                            color: JigsawColors.white,
-                            width: screenSize?.width,
-                            height: screenSize?.height,
-                            child: CustomPaint(
-                              painter: JigsawPainterBackground(
-                                blocks,
-                                outlineCanvas: widget.outlineCanvas,
-                              ),
-                              child: Stack(
-                                children: [
-                                  if (blockDone.isNotEmpty)
-                                    ...blockDone.map(
-                                      (map) {
-                                        return Positioned(
-                                          left: map.offset.dx,
-                                          top: map.offset.dy,
-                                          child: Container(
-                                            child: map.widget,
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                  if (blockNotDone.isNotEmpty)
-                                    ...blockNotDone.asMap().entries.map(
-                                      (map) {
-                                        return Positioned(
-                                          left: map.value.offset.dx,
-                                          top: map.value.offset.dy,
-                                          child: Offstage(
-                                            offstage: !(_index == map.key),
-                                            child: GestureDetector(
-                                              onTapDown: (details) {
-                                                if (map.value.blockIsDone) {
-                                                  return;
-                                                }
-
-                                                setState(() {
-                                                  _pos = details.localPosition;
-                                                  _index = map.key;
-                                                });
-                                              },
-                                              child: Container(
-                                                child: map.value.widget,
-                                              ),
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                    )
-                                ],
-                              ),
-                            ),
+                  setState(() {});
+                },
+                child: Stack(
+                  children: [
+                    if (blocks.isEmpty) ...[
+                      RepaintBoundary(
+                        key: _repaintKey,
+                        child: SizedBox(
+                          height: double.maxFinite,
+                          width: double.maxFinite,
+                          child: widget.child,
+                        ),
+                      )
+                    ],
+                    Offstage(
+                      offstage: blocks.isEmpty,
+                      child: Container(
+                        color: JigsawColors.white,
+                        width: screenSize?.width,
+                        height: screenSize?.height,
+                        child: CustomPaint(
+                          painter: JigsawPainterBackground(
+                            blocks,
+                            outlineCanvas: widget.outlineCanvas,
                           ),
-                        )
-                      ],
-                    ),
-                  ),
+                          child: Stack(
+                            children: [
+                              if (blockDone.isNotEmpty)
+                                ...blockDone.map(
+                                  (map) {
+                                    return Positioned(
+                                      left: map.offset.dx,
+                                      top: map.offset.dy,
+                                      child: Container(
+                                        child: map.widget,
+                                      ),
+                                    );
+                                  },
+                                ),
+                              if (blockNotDone.isNotEmpty)
+                                ...blockNotDone.asMap().entries.map(
+                                  (map) {
+                                    return Positioned(
+                                      left: map.value.offset.dx,
+                                      top: map.value.offset.dy,
+                                      child: Offstage(
+                                        offstage: !(_index == map.key),
+                                        child: GestureDetector(
+                                          onTapDown: (details) {
+                                            if (map.value.blockIsDone) {
+                                              return;
+                                            }
+
+                                            setState(() {
+                                              _pos = details.localPosition;
+                                              _index = map.key;
+                                            });
+                                          },
+                                          child: Container(
+                                            child: map.value.widget,
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                )
+                            ],
+                          ),
+                        ),
+                      ),
+                    )
+                  ],
                 ),
               ),
-
-              ///
-              if (widget.carouselDirection == Axis.horizontal)
-                carouselBlocksWidget ?? const SizedBox.shrink(),
-            ],
+            ),
           );
+
+          if (widget.carouselDirection == Axis.horizontal) {
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _puzzleCanvas,
+                carouselBlocksWidget ?? const SizedBox.shrink(),
+              ],
+            );
+          } else {
+            return Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                carouselBlocksWidget ?? const SizedBox.shrink(),
+                _puzzleCanvas,
+              ],
+            );
+          }
         });
   }
 }
