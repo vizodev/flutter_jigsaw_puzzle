@@ -372,11 +372,13 @@ class JigsawWidgetState extends State<JigsawWidget> {
               ],
             );
           } else {
+            return _puzzleCanvas;
+
             return Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 // carouselBlocksWidget ?? const SizedBox.shrink(),
-                Expanded(child: _puzzleCanvas),
+                _puzzleCanvas,
               ],
             );
           }
