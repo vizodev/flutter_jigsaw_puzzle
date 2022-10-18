@@ -385,7 +385,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
             return Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // carouselBlocksWidget ?? const SizedBox.shrink(),
+                carouselBlocksWidget ?? const SizedBox.shrink(),
                 _puzzleCanvas,
               ],
             );
