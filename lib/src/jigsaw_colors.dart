@@ -14,7 +14,7 @@ class JigsawColors {
   static Color pieceOutline = canvasOutline.withOpacity(0.7); // Colors.black12
   static const pieceOutlineDone = Color(0x54FFFFFF);
 
-  static const blocksCarouselBg = Colors.black26;
+  static const blocksCarouselBg = Color(0x26000000);
 }
 
 /// Design setup as strokes, fill and more for jigsaw
