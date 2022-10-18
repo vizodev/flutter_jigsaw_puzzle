@@ -236,44 +236,42 @@ class JigsawWidgetState extends State<JigsawWidget> {
           final List<BlockClass> blockDone =
               blocks.where((block) => block.blockIsDone).toList();
 
-          _carouselBlocks = AspectRatio(
-            aspectRatio: 1,
-            child: Container(
-              color: JigsawColors.blocksCarouselBg,
-              height: widget.carouselDirection == Axis.horizontal
-                  ? 110
-                  : screenSize?.height,
-              width: widget.carouselDirection == Axis.vertical ? 110 : null,
-              child: CarouselSlider(
-                carouselController: _carouselController,
-                options: CarouselOptions(
-                  scrollDirection: widget.carouselDirection,
-                  scrollPhysics: const AlwaysScrollableScrollPhysics(),
-                  initialPage: _index ??
-                      (blockNotDone.length >= 3
-                          ? (blockNotDone.length / 2).floor()
-                          : 0),
-                  height: widget.carouselDirection == Axis.horizontal
-                      ? 110
-                      : screenSize?.height ?? 600,
-                  enableInfiniteScroll: false,
-                  viewportFraction: 0.2,
-                  enlargeCenterPage: true,
-                  enlargeStrategy: CenterPageEnlargeStrategy.height,
-                  onPageChanged: (index, reason) => setState(() {
-                    _index = index;
-                  }),
-                ),
-                items: blockNotDone.map((block) {
-                  final sizeBlock = block.widget.imageBox.size;
-                  return FittedBox(
-                    child: SizedBox.fromSize(
-                      size: sizeBlock,
-                      child: block.widget,
-                    ),
-                  );
-                }).toList(),
+          _carouselBlocks = Container(
+            color: JigsawColors.blocksCarouselBg,
+            height: widget.carouselDirection == Axis.horizontal
+                ? 110
+                : screenSize?.height,
+            width: widget.carouselDirection == Axis.vertical ? 110 : null,
+            child: CarouselSlider(
+              carouselController: _carouselController,
+              options: CarouselOptions(
+                scrollDirection: widget.carouselDirection,
+                scrollPhysics: const AlwaysScrollableScrollPhysics(),
+                initialPage: _index ??
+                    (blockNotDone.length >= 3
+                        ? (blockNotDone.length / 2).floor()
+                        : 0),
+                // height: widget.carouselDirection == Axis.horizontal
+                //     ? 110
+                //     : screenSize?.height ?? 600,
+                aspectRatio: 1,
+                enableInfiniteScroll: false,
+                viewportFraction: 0.2,
+                enlargeCenterPage: true,
+                enlargeStrategy: CenterPageEnlargeStrategy.height,
+                onPageChanged: (index, reason) => setState(() {
+                  _index = index;
+                }),
               ),
+              items: blockNotDone.map((block) {
+                final sizeBlock = block.widget.imageBox.size;
+                return FittedBox(
+                  child: SizedBox.fromSize(
+                    size: sizeBlock,
+                    child: block.widget,
+                  ),
+                );
+              }).toList(),
             ),
           );
 
@@ -368,36 +366,36 @@ class JigsawWidgetState extends State<JigsawWidget> {
             }),
           );
 
-          return ListView(
-            physics: const NeverScrollableScrollPhysics(),
-            padding: EdgeInsets.zero,
-            shrinkWrap: true,
-            scrollDirection: widget.carouselDirection,
-            children: [
-              _puzzleCanvas,
-              carouselBlocksWidget ?? const SizedBox.shrink(),
-            ],
-          );
+          // return ListView(
+          //   physics: const NeverScrollableScrollPhysics(),
+          //   padding: EdgeInsets.zero,
+          //   shrinkWrap: true,
+          //   scrollDirection: widget.carouselDirection,
+          //   children: [
+          //     _puzzleCanvas,
+          //     carouselBlocksWidget ?? const SizedBox.shrink(),
+          //   ],
+          // );
 
-          // if (widget.carouselDirection == Axis.horizontal) {
-          //   return Column(
-          //     mainAxisSize: MainAxisSize.min,
-          //     children: [
-          //       _puzzleCanvas,
-          //       carouselBlocksWidget ?? const SizedBox.shrink(),
-          //     ],
-          //   );
-          // } else {
-          //   // return _puzzleCanvas;
-          //
-          //   return Row(
-          //     mainAxisSize: MainAxisSize.max,
-          //     children: [
-          //       carouselBlocksWidget ?? const SizedBox.shrink(),
-          //       _puzzleCanvas,
-          //     ],
-          //   );
-          // }
+          if (widget.carouselDirection == Axis.horizontal) {
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _puzzleCanvas,
+                carouselBlocksWidget ?? const SizedBox.shrink(),
+              ],
+            );
+          } else {
+            // return _puzzleCanvas;
+
+            return Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                carouselBlocksWidget ?? const SizedBox.shrink(),
+                _puzzleCanvas,
+              ],
+            );
+          }
         });
   }
 
