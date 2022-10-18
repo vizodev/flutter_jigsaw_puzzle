@@ -53,7 +53,7 @@ class _JigsawPuzzleState extends State<JigsawPuzzle> {
       outlineCanvas: widget.outlineCanvas,
       snapSensitivity: widget.snapSensitivity,
       child: Image(
-        fit: BoxFit.contain,
+        fit: BoxFit.cover,
         image: widget.image,
       ),
     );
@@ -233,9 +233,9 @@ class JigsawWidgetState extends State<JigsawWidget> {
           _carouselBlocks = Container(
             color: JigsawColors.blocksCarouselBg,
             height: widget.carouselDirection == Axis.horizontal
-                ? 110
+                ? 140
                 : screenSize?.height,
-            width: widget.carouselDirection == Axis.vertical ? 130 : null,
+            width: widget.carouselDirection == Axis.vertical ? 160 : null,
             child: CarouselSlider(
               carouselController: _carouselController,
               options: CarouselOptions(
@@ -270,95 +270,81 @@ class JigsawWidgetState extends State<JigsawWidget> {
           );
 
           final _puzzleCanvas = AspectRatio(
-            aspectRatio: 1,
-            child: LayoutBuilder(builder: (context, constraints) {
-              return SizedBox.fromSize(
-                size: constraints.biggest,
-                child: Listener(
-                  onPointerUp: (event) =>
-                      handleBlockPointerUp(event, blockNotDone),
-                  onPointerMove: (event) =>
-                      handleBlockPointerMove(event, blockNotDone),
-                  child: Stack(
-                    children: [
-                      if (blocks.isEmpty) ...[
-                        RepaintBoundary(
+              aspectRatio: 1,
+              child: Listener(
+                onPointerUp: (event) =>
+                    handleBlockPointerUp(event, blockNotDone),
+                onPointerMove: (event) =>
+                    handleBlockPointerMove(event, blockNotDone),
+                child: Stack(
+                  children: [
+                    if (blocks.isEmpty)
+                      Positioned.fill(
+                        child: RepaintBoundary(
                           key: _repaintKey,
-                          child: SizedBox.fromSize(
-                            size: constraints.biggest,
-                            child: widget.child,
-                          ),
+                          child: widget.child,
                         ),
-                      ],
-                      Offstage(
-                        offstage: blocks.isEmpty,
-                        child: Container(
-                          color: JigsawColors.white,
-                          constraints: BoxConstraints(
-                            minWidth:
-                                screenSize?.width ?? constraints.biggest.width,
-                            minHeight: screenSize?.height ??
-                                constraints.biggest.height,
-                            maxWidth: constraints.biggest.width,
-                            maxHeight: constraints.biggest.height,
+                      ),
+                    Offstage(
+                      offstage: blocks.isEmpty,
+                      child: SizedBox(
+                        // color: JigsawColors.white,
+                        // width: screenSize?.width,
+                        // height: screenSize?.height,
+                        child: CustomPaint(
+                          painter: JigsawPainterBackground(
+                            blocks,
+                            outlineCanvas: widget.outlineCanvas,
                           ),
-                          child: CustomPaint(
-                            painter: JigsawPainterBackground(
-                              blocks,
-                              outlineCanvas: widget.outlineCanvas,
-                            ),
-                            child: Stack(
-                              children: [
-                                if (blockDone.isNotEmpty)
-                                  ...blockDone.map(
-                                    (map) {
-                                      return Positioned(
-                                        left: map.offset.dx,
-                                        top: map.offset.dy,
-                                        child: Container(
-                                          child: map.widget,
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                if (blockNotDone.isNotEmpty)
-                                  ...blockNotDone.asMap().entries.map(
-                                    (map) {
-                                      return Positioned(
-                                        left: map.value.offset.dx,
-                                        top: map.value.offset.dy,
-                                        child: Offstage(
-                                          offstage: _index != map.key,
-                                          child: GestureDetector(
-                                            onTapDown: (details) {
-                                              if (map.value.blockIsDone) {
-                                                return;
-                                              }
+                          child: Stack(
+                            children: [
+                              if (blockDone.isNotEmpty)
+                                ...blockDone.map(
+                                  (map) {
+                                    return Positioned(
+                                      left: map.offset.dx,
+                                      top: map.offset.dy,
+                                      child: Container(
+                                        child: map.widget,
+                                      ),
+                                    );
+                                  },
+                                ),
+                              if (blockNotDone.isNotEmpty)
+                                ...blockNotDone.asMap().entries.map(
+                                  (map) {
+                                    return Positioned(
+                                      left: map.value.offset.dx,
+                                      top: map.value.offset.dy,
+                                      child: Offstage(
+                                        offstage: _index != map.key,
+                                        child: GestureDetector(
+                                          onTapDown: (details) {
+                                            if (map.value.blockIsDone) {
+                                              return;
+                                            }
 
-                                              setState(() {
-                                                _pos = details.localPosition;
-                                                _index = map.key;
-                                              });
-                                            },
-                                            child: Container(
-                                              child: map.value.widget,
-                                            ),
+                                            setState(() {
+                                              _pos = details.localPosition;
+                                              _index = map.key;
+                                            });
+                                          },
+                                          child: Container(
+                                            child: map.value.widget,
                                           ),
                                         ),
-                                      );
-                                    },
-                                  ),
-                              ],
-                            ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                            ],
                           ),
                         ),
-                      )
-                    ],
-                  ),
+                      ),
+                    )
+                  ],
                 ),
-              );
-            }),
-          );
+              ));
 
           // return ListView(
           //   physics: const NeverScrollableScrollPhysics(),
@@ -375,18 +361,16 @@ class JigsawWidgetState extends State<JigsawWidget> {
             return Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                _puzzleCanvas,
+                Expanded(child: _puzzleCanvas),
                 carouselBlocksWidget ?? const SizedBox.shrink(),
               ],
             );
           } else {
-            // return _puzzleCanvas;
-
             return Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 carouselBlocksWidget ?? const SizedBox.shrink(),
-                _puzzleCanvas,
+                Expanded(child: _puzzleCanvas),
               ],
             );
           }
