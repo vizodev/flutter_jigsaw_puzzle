@@ -238,7 +238,9 @@ class JigsawWidgetState extends State<JigsawWidget> {
 
           _carouselBlocks = Container(
             color: JigsawColors.blocksCarouselBg,
-            height: widget.carouselDirection == Axis.horizontal ? 110 : null,
+            height: widget.carouselDirection == Axis.horizontal
+                ? 110
+                : screenSize?.height,
             width: widget.carouselDirection == Axis.vertical ? 110 : null,
             child: CarouselSlider(
               carouselController: _carouselController,
@@ -249,7 +251,9 @@ class JigsawWidgetState extends State<JigsawWidget> {
                     (blockNotDone.length >= 3
                         ? (blockNotDone.length / 2).floor()
                         : 0),
-                height: 110,
+                height: widget.carouselDirection == Axis.horizontal
+                    ? 110
+                    : screenSize?.height,
                 aspectRatio: 1,
                 enableInfiniteScroll: false,
                 viewportFraction: 0.2,
