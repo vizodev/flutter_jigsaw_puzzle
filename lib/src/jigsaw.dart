@@ -44,24 +44,18 @@ class JigsawPuzzle extends StatefulWidget {
 class _JigsawPuzzleState extends State<JigsawPuzzle> {
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        const SizedBox(height: 16),
-        JigsawWidget(
-          key: widget.puzzleKey,
-          gridSize: widget.gridSize,
-          callbackFinish: widget.onFinished,
-          callbackSuccess: widget.onBlockSuccess,
-          carouselDirection: widget.carouselBlocksDirection,
-          outlineCanvas: widget.outlineCanvas,
-          snapSensitivity: widget.snapSensitivity,
-          child: Image(
-            fit: BoxFit.contain,
-            image: widget.image,
-          ),
-        ),
-      ],
+    return JigsawWidget(
+      key: widget.puzzleKey,
+      gridSize: widget.gridSize,
+      callbackFinish: widget.onFinished,
+      callbackSuccess: widget.onBlockSuccess,
+      carouselDirection: widget.carouselBlocksDirection,
+      outlineCanvas: widget.outlineCanvas,
+      snapSensitivity: widget.snapSensitivity,
+      child: Image(
+        fit: BoxFit.contain,
+        image: widget.image,
+      ),
     );
   }
 }
@@ -251,9 +245,9 @@ class JigsawWidgetState extends State<JigsawWidget> {
                     (blockNotDone.length >= 3
                         ? (blockNotDone.length / 2).floor()
                         : 0),
-                // height: widget.carouselDirection == Axis.horizontal
-                //     ? 110
-                //     : screenSize?.height ?? 600,
+                height: widget.carouselDirection == Axis.horizontal
+                    ? 110
+                    : screenSize?.height ?? 600,
                 aspectRatio: 1,
                 enableInfiniteScroll: false,
                 viewportFraction: 0.2,
@@ -391,7 +385,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
             return Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                carouselBlocksWidget ?? const SizedBox.shrink(),
+                // carouselBlocksWidget ?? const SizedBox.shrink(),
                 _puzzleCanvas,
               ],
             );
