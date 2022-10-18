@@ -281,73 +281,10 @@ class JigsawWidgetState extends State<JigsawWidget> {
               width: double.maxFinite,
               height: double.maxFinite,
               child: Listener(
-                onPointerUp: (event) {
-                  if (blockNotDone.isEmpty) {
-                    reset();
-                    widget.callbackFinish?.call();
-                  }
-
-                  if (_index == null) {
-                    /// When no widget owns this controller
-                    if (_carouselController?.ready == false) {
-                      return;
-                    }
-
-                    _carouselController
-                        ?.nextPage(duration: const Duration(milliseconds: 1))
-                        .whenComplete(
-                      () {
-                        setState(() {});
-                        // NEW
-                        if (_index == null && blockNotDone.isNotEmpty) {
-                          _index = blockNotDone.indexOf(blockNotDone.first);
-                        }
-                      },
-                    );
-                  }
-                },
-                onPointerMove: (event) {
-                  if (_index == null) {
-                    return;
-                  }
-                  if (blockNotDone.isEmpty) {
-                    return;
-                  }
-
-                  final Offset offset = event.localPosition - _pos;
-
-                  blockNotDone[_index!].offset = offset;
-
-                  const minSensitivity = 0;
-                  const maxSensitivity = 1;
-                  const maxDistanceThreshold = 20;
-                  const minDistanceThreshold = 1;
-
-                  final sensitivity = widget.snapSensitivity;
-                  final distanceThreshold = sensitivity *
-                          (maxSensitivity - minSensitivity) *
-                          (maxDistanceThreshold - minDistanceThreshold) +
-                      minDistanceThreshold;
-
-                  if ((blockNotDone[_index!].offset -
-                              blockNotDone[_index!].offsetDefault)
-                          .distance <
-                      distanceThreshold) {
-                    blockNotDone[_index!].blockIsDone = true;
-
-                    blockNotDone[_index!].offset =
-                        blockNotDone[_index!].offsetDefault;
-
-                    _index = null;
-
-                    // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
-                    blocksNotifier.notifyListeners();
-
-                    widget.callbackSuccess?.call();
-                  }
-
-                  setState(() {});
-                },
+                onPointerUp: (event) =>
+                    handleBlockPointerUp(event, blockNotDone),
+                onPointerMove: (event) =>
+                    handleBlockPointerMove(event, blockNotDone),
                 child: Stack(
                   children: [
                     if (blocks.isEmpty) ...[
@@ -441,6 +378,75 @@ class JigsawWidgetState extends State<JigsawWidget> {
             );
           }
         });
+  }
+
+  void handleBlockPointerUp(
+      PointerUpEvent event, List<BlockClass> blockNotDone) {
+    if (blockNotDone.isEmpty) {
+      reset();
+      widget.callbackFinish?.call();
+    }
+
+    if (_index == null) {
+      /// When no widget owns this controller
+      if (_carouselController?.ready == false) {
+        return;
+      }
+
+      _carouselController
+          ?.nextPage(duration: const Duration(milliseconds: 1))
+          .whenComplete(
+        () {
+          setState(() {});
+          // NEW
+          if (_index == null && blockNotDone.isNotEmpty) {
+            _index = blockNotDone.indexOf(blockNotDone.first);
+          }
+        },
+      );
+    }
+  }
+
+  void handleBlockPointerMove(
+      PointerMoveEvent event, List<BlockClass> blockNotDone) {
+    if (_index == null) {
+      return;
+    }
+    if (blockNotDone.isEmpty) {
+      return;
+    }
+
+    final Offset offset = event.localPosition - _pos;
+
+    blockNotDone[_index!].offset = offset;
+
+    const minSensitivity = 0;
+    const maxSensitivity = 1;
+    const maxDistanceThreshold = 20;
+    const minDistanceThreshold = 1;
+
+    final sensitivity = widget.snapSensitivity;
+    final distanceThreshold = sensitivity *
+            (maxSensitivity - minSensitivity) *
+            (maxDistanceThreshold - minDistanceThreshold) +
+        minDistanceThreshold;
+
+    if ((blockNotDone[_index!].offset - blockNotDone[_index!].offsetDefault)
+            .distance <
+        distanceThreshold) {
+      blockNotDone[_index!].blockIsDone = true;
+
+      blockNotDone[_index!].offset = blockNotDone[_index!].offsetDefault;
+
+      _index = null;
+
+      // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
+      blocksNotifier.notifyListeners();
+
+      widget.callbackSuccess?.call();
+    }
+
+    setState(() {});
   }
 }
 
