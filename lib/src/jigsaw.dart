@@ -368,25 +368,36 @@ class JigsawWidgetState extends State<JigsawWidget> {
             }),
           );
 
-          if (widget.carouselDirection == Axis.horizontal) {
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _puzzleCanvas,
-                carouselBlocksWidget ?? const SizedBox.shrink(),
-              ],
-            );
-          } else {
-            // return _puzzleCanvas;
+          return ListView(
+            physics: const NeverScrollableScrollPhysics(),
+            padding: EdgeInsets.zero,
+            shrinkWrap: true,
+            scrollDirection: widget.carouselDirection,
+            children: [
+              _puzzleCanvas,
+              carouselBlocksWidget ?? const SizedBox.shrink(),
+            ],
+          );
 
-            return Row(
-              mainAxisSize: MainAxisSize.max,
-              children: [
-                carouselBlocksWidget ?? const SizedBox.shrink(),
-                _puzzleCanvas,
-              ],
-            );
-          }
+          // if (widget.carouselDirection == Axis.horizontal) {
+          //   return Column(
+          //     mainAxisSize: MainAxisSize.min,
+          //     children: [
+          //       _puzzleCanvas,
+          //       carouselBlocksWidget ?? const SizedBox.shrink(),
+          //     ],
+          //   );
+          // } else {
+          //   // return _puzzleCanvas;
+          //
+          //   return Row(
+          //     mainAxisSize: MainAxisSize.max,
+          //     children: [
+          //       carouselBlocksWidget ?? const SizedBox.shrink(),
+          //       _puzzleCanvas,
+          //     ],
+          //   );
+          // }
         });
   }
 
