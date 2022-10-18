@@ -242,38 +242,36 @@ class JigsawWidgetState extends State<JigsawWidget> {
                 ? 110
                 : screenSize?.height,
             width: widget.carouselDirection == Axis.vertical ? 110 : null,
-            child: FittedBox(
-              child: CarouselSlider(
-                carouselController: _carouselController,
-                options: CarouselOptions(
-                  scrollDirection: widget.carouselDirection,
-                  scrollPhysics: const AlwaysScrollableScrollPhysics(),
-                  initialPage: _index ??
-                      (blockNotDone.length >= 3
-                          ? (blockNotDone.length / 2).floor()
-                          : 0),
-                  height: widget.carouselDirection == Axis.horizontal
-                      ? 110
-                      : screenSize?.height ?? 600,
-                  aspectRatio: 1,
-                  enableInfiniteScroll: false,
-                  viewportFraction: 0.2,
-                  enlargeCenterPage: true,
-                  enlargeStrategy: CenterPageEnlargeStrategy.height,
-                  onPageChanged: (index, reason) => setState(() {
-                    _index = index;
-                  }),
-                ),
-                items: blockNotDone.map((block) {
-                  final sizeBlock = block.widget.imageBox.size;
-                  return FittedBox(
-                    child: SizedBox.fromSize(
-                      size: sizeBlock,
-                      child: block.widget,
-                    ),
-                  );
-                }).toList(),
+            child: CarouselSlider(
+              carouselController: _carouselController,
+              options: CarouselOptions(
+                scrollDirection: widget.carouselDirection,
+                scrollPhysics: const AlwaysScrollableScrollPhysics(),
+                initialPage: _index ??
+                    (blockNotDone.length >= 3
+                        ? (blockNotDone.length / 2).floor()
+                        : 0),
+                height: widget.carouselDirection == Axis.horizontal
+                    ? 110
+                    : screenSize?.height ?? 600,
+                aspectRatio: 1,
+                enableInfiniteScroll: false,
+                viewportFraction: 0.2,
+                enlargeCenterPage: true,
+                enlargeStrategy: CenterPageEnlargeStrategy.height,
+                onPageChanged: (index, reason) => setState(() {
+                  _index = index;
+                }),
               ),
+              items: blockNotDone.map((block) {
+                final sizeBlock = block.widget.imageBox.size;
+                return FittedBox(
+                  child: SizedBox.fromSize(
+                    size: sizeBlock,
+                    child: block.widget,
+                  ),
+                );
+              }).toList(),
             ),
           );
 
