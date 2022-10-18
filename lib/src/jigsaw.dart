@@ -235,7 +235,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
             height: widget.carouselDirection == Axis.horizontal
                 ? 110
                 : screenSize?.height,
-            width: widget.carouselDirection == Axis.vertical ? 110 : null,
+            width: widget.carouselDirection == Axis.vertical ? 160 : null,
             child: CarouselSlider(
               carouselController: _carouselController,
               options: CarouselOptions(
