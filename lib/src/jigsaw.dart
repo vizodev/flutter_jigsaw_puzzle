@@ -246,8 +246,8 @@ class JigsawWidgetState extends State<JigsawWidget> {
                         ? (blockNotDone.length / 2).floor()
                         : 0),
                 height: widget.carouselDirection == Axis.horizontal
-                    ? 110
-                    : screenSize?.height ?? 600,
+                    ? 140
+                    : screenSize?.height ?? MediaQuery.of(context).size.height,
                 aspectRatio: 1,
                 enableInfiniteScroll: false,
                 viewportFraction: 0.2,
