@@ -1,6 +1,7 @@
 // TODO remove me
 // ignore_for_file: public_member_api_docs
 
+import 'dart:async';
 import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:ui';
@@ -46,13 +47,13 @@ class JigsawPuzzle extends StatefulWidget {
     Key? key,
     required this.puzzleKey,
     required this.image,
-    // this.autoStart = false,
+    this.autoStartPuzzle = false,
     required this.configs,
   }) : super(key: key);
 
   final GlobalKey<JigsawWidgetState> puzzleKey;
   final AssetImage image;
-  // final bool autoStart;
+  final bool autoStartPuzzle;
   final JigsawConfigs configs;
 
   @override
@@ -60,6 +61,17 @@ class JigsawPuzzle extends StatefulWidget {
 }
 
 class _JigsawPuzzleState extends State<JigsawPuzzle> {
+  @override
+  void initState() {
+    super.initState();
+    if (widget.autoStartPuzzle == true) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Future<void>.delayed(const Duration(milliseconds: 100))
+            .whenComplete(() => widget.puzzleKey.currentState?.generate());
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return JigsawWidget(
