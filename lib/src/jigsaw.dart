@@ -22,6 +22,7 @@ class JigsawPuzzle extends StatefulWidget {
     this.onFinished,
     this.onBlockSuccess,
     this.carouselBlocksDirection = Axis.horizontal,
+    this.carouselBlocksSize = 160,
     this.outlineCanvas = true,
     this.autoStart = false,
     this.snapSensitivity = .5,
@@ -33,6 +34,9 @@ class JigsawPuzzle extends StatefulWidget {
   final Function()? onFinished;
   final Function()? onBlockSuccess;
   final Axis carouselBlocksDirection;
+
+  /// May be carousel width or height, depends on [carouselBlocksDirection]
+  final double carouselBlocksSize;
   final bool outlineCanvas;
   final bool autoStart;
   final double snapSensitivity;
@@ -50,6 +54,7 @@ class _JigsawPuzzleState extends State<JigsawPuzzle> {
       callbackFinish: widget.onFinished,
       callbackSuccess: widget.onBlockSuccess,
       carouselDirection: widget.carouselBlocksDirection,
+      carouselSize: widget.carouselBlocksSize,
       outlineCanvas: widget.outlineCanvas,
       snapSensitivity: widget.snapSensitivity,
       child: Image(
@@ -68,6 +73,7 @@ class JigsawWidget extends StatefulWidget {
     this.callbackFinish,
     this.callbackSuccess,
     required this.carouselDirection,
+    required this.carouselSize,
     required this.outlineCanvas,
     required this.snapSensitivity,
     required this.child,
@@ -78,6 +84,7 @@ class JigsawWidget extends StatefulWidget {
   final Function()? callbackFinish;
   final Function()? callbackSuccess;
   final Axis carouselDirection;
+  final double carouselSize;
   final bool outlineCanvas;
   final double snapSensitivity;
 
@@ -233,25 +240,39 @@ class JigsawWidgetState extends State<JigsawWidget> {
           final List<BlockClass> blockDone =
               blocks.where((block) => block.blockIsDone).toList();
 
+          final double carouselWidth =
+              widget.carouselDirection == Axis.horizontal
+                  ? MediaQuery.of(context).size.width // null
+                  : widget.carouselSize;
+          final double carouselHeight =
+              widget.carouselDirection == Axis.horizontal
+                  ? widget.carouselSize * .88
+                  : (screenSize?.height ?? MediaQuery.of(context).size.height);
+          print(MediaQuery.of(context).size);
+          print('carousel: $carouselWidth / $carouselHeight');
           _carouselBlocks = Container(
             color: JigsawColors.blocksCarouselBg,
-            height: widget.carouselDirection == Axis.horizontal
-                ? 140
-                : screenSize?.height,
-            width: widget.carouselDirection == Axis.vertical ? 160 : null,
+            constraints: BoxConstraints(
+              maxWidth: widget.carouselDirection == Axis.horizontal
+                  ? double.infinity
+                  : MediaQuery.of(context).size.width * 0.14,
+              maxHeight: widget.carouselDirection == Axis.horizontal
+                  ? MediaQuery.of(context).size.height * 0.19
+                  : double.infinity,
+            ),
+            width: carouselWidth,
+            height: carouselHeight,
             child: CarouselSlider(
               carouselController: _carouselController,
               options: CarouselOptions(
+                aspectRatio: 1,
+                height: carouselHeight,
                 scrollDirection: widget.carouselDirection,
                 scrollPhysics: const AlwaysScrollableScrollPhysics(),
                 initialPage: _index ??
                     (blockNotDone.length >= 3
                         ? (blockNotDone.length / 2).floor()
                         : 0),
-                height: widget.carouselDirection == Axis.horizontal
-                    ? 140
-                    : screenSize?.height ?? MediaQuery.of(context).size.height,
-                aspectRatio: 1,
                 enableInfiniteScroll: false,
                 viewportFraction: 0.2,
                 enlargeCenterPage: true,
