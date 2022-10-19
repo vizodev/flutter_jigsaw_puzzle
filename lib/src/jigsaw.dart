@@ -4,42 +4,56 @@
 import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:ui';
+
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:image/image.dart' as ui;
 
-import 'package:flutter_jigsaw_puzzle/src/error.dart';
-
+import 'error.dart';
 import 'jigsaw_colors.dart';
+
+class JigsawConfigs {
+  const JigsawConfigs({
+    this.gridSize = 3,
+    required this.onBlockFitted,
+    required this.onFinished,
+    this.carouselDirection = Axis.horizontal,
+    this.carouselSize = 160,
+    this.outlineCanvas = true,
+    this.snapSensitivity = .5,
+  });
+
+  /// 3 => 3 x 3 | 5 => 5 x 5
+  final int gridSize;
+  final Function()? onBlockFitted;
+  final Function()? onFinished;
+
+  final Axis carouselDirection;
+
+  /// May be carousel width or height, depends on [carouselDirection]
+  final double carouselSize;
+
+  /// Show pieces outlines in canvas
+  final bool outlineCanvas;
+
+  /// Between 0 and 1: how hard to fit new puzzle piece
+  final double snapSensitivity;
+}
 
 class JigsawPuzzle extends StatefulWidget {
   const JigsawPuzzle({
     Key? key,
     required this.puzzleKey,
-    required this.gridSize,
     required this.image,
-    this.onFinished,
-    this.onBlockSuccess,
-    this.carouselBlocksDirection = Axis.horizontal,
-    this.carouselBlocksSize = 160,
-    this.outlineCanvas = true,
-    this.autoStart = false,
-    this.snapSensitivity = .5,
+    // this.autoStart = false,
+    required this.configs,
   }) : super(key: key);
 
   final GlobalKey<JigsawWidgetState> puzzleKey;
-  final int gridSize;
   final AssetImage image;
-  final Function()? onFinished;
-  final Function()? onBlockSuccess;
-  final Axis carouselBlocksDirection;
-
-  /// May be carousel width or height, depends on [carouselBlocksDirection]
-  final double carouselBlocksSize;
-  final bool outlineCanvas;
-  final bool autoStart;
-  final double snapSensitivity;
+  // final bool autoStart;
+  final JigsawConfigs configs;
 
   @override
   _JigsawPuzzleState createState() => _JigsawPuzzleState();
@@ -50,13 +64,7 @@ class _JigsawPuzzleState extends State<JigsawPuzzle> {
   Widget build(BuildContext context) {
     return JigsawWidget(
       key: widget.puzzleKey,
-      gridSize: widget.gridSize,
-      callbackFinish: widget.onFinished,
-      callbackSuccess: widget.onBlockSuccess,
-      carouselDirection: widget.carouselBlocksDirection,
-      carouselSize: widget.carouselBlocksSize,
-      outlineCanvas: widget.outlineCanvas,
-      snapSensitivity: widget.snapSensitivity,
+      configs: widget.configs,
       child: Image(
         fit: BoxFit.cover,
         image: widget.image,
@@ -69,24 +77,12 @@ class _JigsawPuzzleState extends State<JigsawPuzzle> {
 class JigsawWidget extends StatefulWidget {
   const JigsawWidget({
     Key? key,
-    required this.gridSize,
-    this.callbackFinish,
-    this.callbackSuccess,
-    required this.carouselDirection,
-    required this.carouselSize,
-    required this.outlineCanvas,
-    required this.snapSensitivity,
+    required this.configs,
     required this.child,
   }) : super(key: key);
 
   final Widget child;
-  final int gridSize;
-  final Function()? callbackFinish;
-  final Function()? callbackSuccess;
-  final Axis carouselDirection;
-  final double carouselSize;
-  final bool outlineCanvas;
-  final double snapSensitivity;
+  final JigsawConfigs configs;
 
   @override
   JigsawWidgetState createState() => JigsawWidgetState();
@@ -94,6 +90,9 @@ class JigsawWidget extends StatefulWidget {
 
 class JigsawWidgetState extends State<JigsawWidget> {
   final GlobalKey _repaintKey = GlobalKey();
+  JigsawConfigs get configs => widget.configs;
+  Axis get direction => widget.configs.carouselDirection;
+
   Size? screenSize;
 
   ui.Image? fullImage;
@@ -142,8 +141,8 @@ class JigsawWidgetState extends State<JigsawWidget> {
 
     fullImage ??= await _getImageFromWidget();
 
-    final int xSplitCount = widget.gridSize;
-    final int ySplitCount = widget.gridSize;
+    final int xSplitCount = configs.gridSize;
+    final int ySplitCount = configs.gridSize;
 
     final double widthPerBlock = fullImage!.width / xSplitCount;
     final double heightPerBlock = fullImage!.height / ySplitCount;
@@ -240,23 +239,21 @@ class JigsawWidgetState extends State<JigsawWidget> {
           final List<BlockClass> blockDone =
               blocks.where((block) => block.blockIsDone).toList();
 
-          final double carouselWidth =
-              widget.carouselDirection == Axis.horizontal
-                  ? MediaQuery.of(context).size.width // null
-                  : widget.carouselSize;
-          final double carouselHeight =
-              widget.carouselDirection == Axis.horizontal
-                  ? widget.carouselSize * .88
-                  : (screenSize?.height ?? MediaQuery.of(context).size.height);
-          print(MediaQuery.of(context).size);
-          print('carousel: $carouselWidth / $carouselHeight');
+          final double carouselWidth = direction == Axis.horizontal
+              ? MediaQuery.of(context).size.width // null
+              : configs.carouselSize;
+          final double carouselHeight = direction == Axis.horizontal
+              ? configs.carouselSize * .88
+              : (screenSize?.height ?? MediaQuery.of(context).size.height);
+          // print(MediaQuery.of(context).size);
+          // print('carousel: $carouselWidth / $carouselHeight');
           _carouselBlocks = Container(
             color: JigsawColors.blocksCarouselBg,
             constraints: BoxConstraints(
-              maxWidth: widget.carouselDirection == Axis.horizontal
+              maxWidth: direction == Axis.horizontal
                   ? double.infinity
                   : MediaQuery.of(context).size.width * 0.14,
-              maxHeight: widget.carouselDirection == Axis.horizontal
+              maxHeight: direction == Axis.horizontal
                   ? MediaQuery.of(context).size.height * 0.19
                   : double.infinity,
             ),
@@ -267,7 +264,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
               options: CarouselOptions(
                 aspectRatio: 1,
                 height: carouselHeight,
-                scrollDirection: widget.carouselDirection,
+                scrollDirection: direction,
                 scrollPhysics: const AlwaysScrollableScrollPhysics(),
                 initialPage: _index ??
                     (blockNotDone.length >= 3
@@ -318,7 +315,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
                         child: CustomPaint(
                           painter: JigsawPainterBackground(
                             blocks,
-                            outlineCanvas: widget.outlineCanvas,
+                            outlineCanvas: configs.outlineCanvas,
                           ),
                           child: Stack(
                             children: [
@@ -381,7 +378,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
           //   ],
           // );
 
-          if (widget.carouselDirection == Axis.horizontal) {
+          if (direction == Axis.horizontal) {
             return Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -405,7 +402,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
       PointerUpEvent event, List<BlockClass> blockNotDone) {
     if (blockNotDone.isEmpty) {
       reset();
-      widget.callbackFinish?.call();
+      configs.onFinished?.call();
     }
 
     if (_index == null) {
@@ -446,7 +443,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
     const maxDistanceThreshold = 20;
     const minDistanceThreshold = 1;
 
-    final sensitivity = widget.snapSensitivity;
+    final sensitivity = configs.snapSensitivity;
     final distanceThreshold = sensitivity *
             (maxSensitivity - minSensitivity) *
             (maxDistanceThreshold - minDistanceThreshold) +
@@ -464,7 +461,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
       // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
       blocksNotifier.notifyListeners();
 
-      widget.callbackSuccess?.call();
+      configs.onBlockFitted?.call();
     }
 
     setState(() {});
