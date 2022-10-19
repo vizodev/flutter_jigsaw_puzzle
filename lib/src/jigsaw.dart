@@ -55,6 +55,7 @@ class _JigsawPuzzleState extends State<JigsawPuzzle> {
       child: Image(
         fit: BoxFit.cover,
         image: widget.image,
+        filterQuality: FilterQuality.medium,
       ),
     );
   }
@@ -191,8 +192,10 @@ class JigsawWidgetState extends State<JigsawWidget> {
 
         final ImageBox imageBox = ImageBox(
           image: Image.memory(
-            Uint8List.fromList(ui.encodePng(temp)),
+            Uint8List.fromList(ui.encodePng(temp, level: 1)),
             fit: BoxFit.contain,
+            filterQuality: FilterQuality.medium,
+            // isAntiAlias: true,
           ),
           isDone: false,
           offsetCenter: offsetCenter,
