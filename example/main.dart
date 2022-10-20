@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_jigsaw_puzzle/flutter_jigsaw_puzzle.dart';
 
+// ignore_for_file: avoid_print
+
 void main() {
   runApp(const MyApp());
 }
@@ -52,20 +54,14 @@ class MyApp extends StatelessWidget {
                   ],
                 ),
                 JigsawPuzzle(
-                  gridSize: 5,
-                  image: const AssetImage('assets/Jigsaw.jpg'),
-                  onFinished: () {
-                    // ignore: avoid_print
-                    print('finished!');
-                  },
-                  // ignore: avoid_redundant_argument_values
-                  snapSensitivity: .5, // Between 0 and 1
                   puzzleKey: puzzleKey,
-                  onBlockSuccess: () {
-                    // ignore: avoid_print
-                    print('block success!');
-                  },
-                )
+                  image: const AssetImage('assets/Jigsaw.jpg'),
+                  configs: JigsawConfigs(
+                    gridSize: 5,
+                    onBlockFitted: () => print('block fitted!'),
+                    onFinished: () => print('finished!'),
+                  ),
+                ),
               ],
             ),
           ),
