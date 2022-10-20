@@ -121,6 +121,9 @@ class JigsawWidgetState extends State<JigsawWidget> {
   Widget? get carouselBlocksWidget => _carouselBlocks;
   Widget? _carouselBlocks;
 
+  bool get isGameFinished => _isGameFinished;
+  bool _isGameFinished = false;
+
   Offset _pos = Offset.zero;
   int? _index;
 
@@ -143,15 +146,6 @@ class JigsawWidgetState extends State<JigsawWidget> {
       throw InvalidImageException();
     }
     return ui.decodeImage(List<int>.from(pngBytes));
-  }
-
-  void reset() {
-    images.clear();
-    blocksNotifier = ValueNotifier<List<BlockClass>>(<BlockClass>[]);
-    // TODO: hack!
-    // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
-    blocksNotifier.notifyListeners();
-    setState(() {});
   }
 
   Future<void> generate() async {
@@ -247,6 +241,23 @@ class JigsawWidgetState extends State<JigsawWidget> {
     setState(() {});
   }
 
+  void reset() {
+    images.clear();
+    _isGameFinished = false;
+    blocksNotifier = ValueNotifier<List<BlockClass>>(<BlockClass>[]);
+    // TODO: hack!
+    // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
+    blocksNotifier.notifyListeners();
+    setState(() {});
+  }
+
+  void finishAndReveal() {
+    images.clear();
+    _isGameFinished = true;
+    setState(() {});
+  }
+
+  ///
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder(
@@ -256,6 +267,12 @@ class JigsawWidgetState extends State<JigsawWidget> {
               blocks.where((block) => !block.blockIsDone).toList();
           final List<BlockClass> blockDone =
               blocks.where((block) => block.blockIsDone).toList();
+
+          _isGameFinished =
+              blockDone.length == (configs.gridSize * configs.gridSize) &&
+                  blockNotDone.isEmpty;
+          print('puzzle index: $_index');
+          print('puzzle isFinished: $_isGameFinished');
 
           final double carouselWidth = direction == Axis.horizontal
               ? MediaQuery.of(context).size.width // null
@@ -312,18 +329,11 @@ class JigsawWidgetState extends State<JigsawWidget> {
               aspectRatio: 1,
               child: Listener(
                 onPointerUp: (event) =>
-                    handleBlockPointerUp(event, blockNotDone),
+                    handleBlockPointerUp(event, blockNotDone, blockDone),
                 onPointerMove: (event) =>
                     handleBlockPointerMove(event, blockNotDone),
                 child: Stack(
                   children: [
-                    if (blocks.isEmpty)
-                      Positioned.fill(
-                        child: RepaintBoundary(
-                          key: _repaintKey,
-                          child: widget.child,
-                        ),
-                      ),
                     Offstage(
                       offstage: blocks.isEmpty,
                       child: SizedBox(
@@ -380,7 +390,14 @@ class JigsawWidgetState extends State<JigsawWidget> {
                           ),
                         ),
                       ),
-                    )
+                    ),
+                    if (blocks.isEmpty || _isGameFinished)
+                      Positioned.fill(
+                        child: RepaintBoundary(
+                          key: _repaintKey,
+                          child: widget.child,
+                        ),
+                      ),
                   ],
                 ),
               ));
@@ -416,10 +433,10 @@ class JigsawWidgetState extends State<JigsawWidget> {
         });
   }
 
-  void handleBlockPointerUp(
-      PointerUpEvent event, List<BlockClass> blockNotDone) {
-    if (blockNotDone.isEmpty) {
-      reset();
+  void handleBlockPointerUp(PointerUpEvent event, List<BlockClass> blockNotDone,
+      List<BlockClass> blockDone) {
+    if (blockDone.isNotEmpty && blockNotDone.isEmpty) {
+      finishAndReveal();
       configs.onFinished?.call();
     }
 
