@@ -112,11 +112,11 @@ class JigsawWidgetState extends State<JigsawWidget> {
   Axis get direction => widget.configs.carouselDirection;
 
   Size? screenSize;
-
   ui.Image? fullImage;
   List<List<BlockClass>> images = <List<BlockClass>>[];
   ValueNotifier<List<BlockClass>> blocksNotifier =
       ValueNotifier<List<BlockClass>>(<BlockClass>[]);
+
   CarouselController? _carouselController;
   Widget? get carouselBlocksWidget => _carouselBlocks;
   Widget? _carouselBlocks;
@@ -159,35 +159,34 @@ class JigsawWidgetState extends State<JigsawWidget> {
 
     fullImage ??= await _getImageFromWidget();
 
-    final int xSplitCount = configs.gridSize;
-    final int ySplitCount = configs.gridSize;
+    final int xGrid = configs.gridSize;
+    final int yGrid = configs.gridSize;
+    final double widthPerBlock = fullImage!.width / xGrid;
+    final double heightPerBlock = fullImage!.height / yGrid;
 
-    final double widthPerBlock = fullImage!.width / xSplitCount;
-    final double heightPerBlock = fullImage!.height / ySplitCount;
-
-    for (var y = 0; y < ySplitCount; y++) {
+    /// Matrix XY
+    for (var y = 0; y < yGrid; y++) {
+      final random = math.Random();
       final tempImages = <BlockClass>[];
-
       images.add(tempImages);
-      for (var x = 0; x < xSplitCount; x++) {
-        final int randomPosRow = math.Random().nextInt(2).isEven ? 1 : -1;
-        final int randomPosCol = math.Random().nextInt(2).isEven ? 1 : -1;
 
-        Offset offsetCenter = Offset(widthPerBlock / 2, heightPerBlock / 2);
+      for (var x = 0; x < xGrid; x++) {
+        final int randomPosRow = random.nextInt(2).isEven ? 1 : -1;
+        final int randomPosCol = random.nextInt(2).isEven ? 1 : -1;
+        // Offset offsetCenter = Offset(widthPerBlock / 2, heightPerBlock / 2);
 
-        final ClassJigsawPos jigsawPosSide = ClassJigsawPos(
-          bottom: y == ySplitCount - 1 ? 0 : randomPosCol,
-          left: x == 0 ? 0 : -images[y][x - 1].widget.imageBox.posSide.right,
-          right: x == xSplitCount - 1 ? 0 : randomPosRow,
+        final PositionedData jigsawPosSide = PositionedData(
           top: y == 0 ? 0 : -images[y - 1][x].widget.imageBox.posSide.bottom,
+          bottom: y == yGrid - 1 ? 0 : randomPosCol,
+          left: x == 0 ? 0 : -images[y][x - 1].widget.imageBox.posSide.right,
+          right: x == xGrid - 1 ? 0 : randomPosRow,
         );
 
+        final double minSize = math.min(widthPerBlock, heightPerBlock) / 15 * 4;
         double xAxis = widthPerBlock * x;
         double yAxis = heightPerBlock * y;
 
-        final double minSize = math.min(widthPerBlock, heightPerBlock) / 15 * 4;
-
-        offsetCenter = Offset(
+        Offset offsetCenter = Offset(
           (widthPerBlock / 2) + (jigsawPosSide.left == 1 ? minSize : 0),
           (heightPerBlock / 2) + (jigsawPosSide.top == 1 ? minSize : 0),
         );
@@ -506,6 +505,17 @@ class BlockClass {
   set blockIsDone(bool value) => widget.imageBox.isDone = value;
 }
 
+class PositionedData {
+  PositionedData({
+    required this.top,
+    required this.bottom,
+    required this.left,
+    required this.right,
+  });
+
+  int top, bottom, left, right;
+}
+
 class ImageBox {
   ImageBox({
     required this.image,
@@ -519,23 +529,12 @@ class ImageBox {
 
   Widget image;
   bool isDone;
-  ClassJigsawPos posSide;
+  PositionedData posSide;
   Offset offsetCenter;
   Size size;
   double radiusPoint;
 
   final JigsawConfigs? configs;
-}
-
-class ClassJigsawPos {
-  ClassJigsawPos({
-    required this.top,
-    required this.bottom,
-    required this.left,
-    required this.right,
-  });
-
-  int top, bottom, left, right;
 }
 
 ///
@@ -663,7 +662,7 @@ Path getPiecePath(
   Size size,
   double radiusPoint,
   Offset offsetCenter,
-  ClassJigsawPos posSide,
+  PositionedData posSide,
 ) {
   final Path path = Path();
 
