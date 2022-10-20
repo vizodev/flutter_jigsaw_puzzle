@@ -22,6 +22,7 @@ class JigsawConfigs {
     this.carouselDirection = Axis.horizontal,
     this.carouselSize = 160,
     this.outlineCanvas = true,
+    this.outlinesWidthFactor = 1,
     this.snapSensitivity = .5,
   });
 
@@ -37,6 +38,11 @@ class JigsawConfigs {
 
   /// Show pieces outlines in canvas
   final bool outlineCanvas;
+
+  /// To make outlines (width) thicker or thinner
+  ///
+  /// 1 means no change | <1 make bigger | >>1 make smaller
+  final double outlinesWidthFactor;
 
   /// Between 0 and 1: how hard to fit new puzzle piece
   final double snapSensitivity;
@@ -215,6 +221,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
             filterQuality: FilterQuality.medium,
             // isAntiAlias: true,
           ),
+          configs: configs,
           isDone: false,
           offsetCenter: offsetCenter,
           posSide: jigsawPosSide,
@@ -327,7 +334,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
                         child: CustomPaint(
                           painter: JigsawPainterBackground(
                             blocks,
-                            outlineCanvas: configs.outlineCanvas,
+                            configs: configs,
                           ),
                           child: Stack(
                             children: [
@@ -502,19 +509,22 @@ class BlockClass {
 class ImageBox {
   ImageBox({
     required this.image,
-    required this.posSide,
+    required this.configs,
     required this.isDone,
     required this.offsetCenter,
+    required this.posSide,
     required this.radiusPoint,
     required this.size,
   });
 
   Widget image;
+  bool isDone;
   ClassJigsawPos posSide;
   Offset offsetCenter;
   Size size;
   double radiusPoint;
-  bool isDone;
+
+  final JigsawConfigs? configs;
 }
 
 class ClassJigsawPos {
@@ -530,18 +540,21 @@ class ClassJigsawPos {
 
 ///
 class JigsawPainterBackground extends CustomPainter {
-  JigsawPainterBackground(this.blocks, {required this.outlineCanvas});
+  JigsawPainterBackground(this.blocks, {required this.configs});
 
   List<BlockClass> blocks;
-  bool outlineCanvas;
+  JigsawConfigs configs;
 
   @override
   void paint(Canvas canvas, Size size) {
+    final strokeFactor = configs.outlinesWidthFactor;
     final Paint backgroundPaint = Paint()
-      ..style = outlineCanvas ? PaintingStyle.stroke : PaintingStyle.fill
-      ..color =
-          outlineCanvas ? JigsawColors.canvasOutline : JigsawColors.canvasBg
-      ..strokeWidth = JigsawDesign.strokeCanvasWidth
+      ..style =
+          configs.outlineCanvas ? PaintingStyle.stroke : PaintingStyle.fill
+      ..color = configs.outlineCanvas
+          ? JigsawColors.canvasOutline
+          : JigsawColors.canvasBg
+      ..strokeWidth = (JigsawDesign.strokeCanvasWidth / strokeFactor)
       ..strokeCap = StrokeCap.round;
 
     final Path path = Path();
@@ -597,12 +610,13 @@ class _PuzzlePiecePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    final strokeFactor = imageBox.configs?.outlinesWidthFactor ?? 1;
     final Paint paint = Paint()
       ..color = imageBox.isDone
           ? JigsawColors.pieceOutlineDone
           : JigsawColors.pieceOutline
       ..style = PaintingStyle.stroke
-      ..strokeWidth = JigsawDesign.strokePieceWidth * 2;
+      ..strokeWidth = (JigsawDesign.strokePieceWidth / strokeFactor) * 2;
 
     canvas.drawPath(
       getPiecePath(
@@ -614,7 +628,7 @@ class _PuzzlePiecePainter extends CustomPainter {
       final Paint paintDone = Paint()
         ..color = JigsawColors.pieceOutlineDone
         ..style = PaintingStyle.fill
-        ..strokeWidth = JigsawDesign.strokeCanvasWidth;
+        ..strokeWidth = (JigsawDesign.strokeCanvasWidth / strokeFactor);
 
       canvas.drawPath(
         getPiecePath(size, imageBox.radiusPoint, imageBox.offsetCenter,
