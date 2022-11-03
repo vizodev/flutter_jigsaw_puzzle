@@ -53,12 +53,14 @@ class JigsawPuzzle extends StatefulWidget {
     Key? key,
     required this.puzzleKey,
     required this.image,
+    this.imageFit = BoxFit.cover,
     this.autoStartPuzzle = false,
     required this.configs,
   }) : super(key: key);
 
   final GlobalKey<JigsawWidgetState> puzzleKey;
-  final AssetImage image;
+  final ImageProvider image;
+  final BoxFit imageFit;
   final bool autoStartPuzzle;
   final JigsawConfigs configs;
 
@@ -84,7 +86,7 @@ class _JigsawPuzzleState extends State<JigsawPuzzle> {
       key: widget.puzzleKey,
       configs: widget.configs,
       child: Image(
-        fit: BoxFit.cover,
+        fit: widget.imageFit,
         image: widget.image,
         filterQuality: FilterQuality.medium,
       ),
@@ -130,6 +132,8 @@ class JigsawWidgetState extends State<JigsawWidget> {
   @override
   void initState() {
     _carouselController = CarouselController();
+
+    print('INIT');
     super.initState();
   }
 
@@ -238,6 +242,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
     blocksNotifier.value.shuffle();
     // ignore: invalid_use_of_visible_for_testing_member, invalid_use_of_protected_member
     blocksNotifier.notifyListeners();
+    print('GENERATE!');
     setState(() {});
   }
 
