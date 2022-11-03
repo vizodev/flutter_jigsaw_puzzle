@@ -17,12 +17,15 @@ import 'jigsaw_colors.dart';
 class JigsawConfigs {
   const JigsawConfigs({
     this.gridSize = 3,
+    this.autoStartPuzzle = false,
+    this.onAutoStarted,
     required this.onBlockFitted,
     required this.onFinished,
     this.carouselDirection = Axis.horizontal,
     this.carouselSize = 160,
     this.outlineCanvas = true,
     this.outlinesWidthFactor = 1,
+    this.autoStartOnTapImage = false,
     this.snapSensitivity = .5,
   });
 
@@ -44,25 +47,45 @@ class JigsawConfigs {
   /// 1 means no change | <1 make bigger | >>1 make smaller
   final double outlinesWidthFactor;
 
+  final Function()? onAutoStarted;
+
+  /// Auto generate blocks
+  final bool autoStartPuzzle;
+
+  /// Generate blocks on tap image
+  final bool autoStartOnTapImage;
+
   /// Between 0 and 1: how hard to fit new puzzle piece
   final double snapSensitivity;
 }
 
+void _tryAutoStartPuzzle(GlobalKey<JigsawWidgetState> puzzleKey,
+    {JigsawConfigs? configs}) {
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    Future<void>.delayed(const Duration(milliseconds: 100)).whenComplete(
+      () => puzzleKey.currentState
+          ?.generate()
+          .whenComplete(() => configs?.onAutoStarted?.call()),
+    );
+  });
+}
+
+///
 class JigsawPuzzle extends StatefulWidget {
   const JigsawPuzzle({
     Key? key,
     required this.puzzleKey,
     required this.image,
     this.imageFit = BoxFit.cover,
-    this.autoStartPuzzle = false,
     required this.configs,
   }) : super(key: key);
 
   final GlobalKey<JigsawWidgetState> puzzleKey;
   final ImageProvider image;
   final BoxFit imageFit;
-  final bool autoStartPuzzle;
   final JigsawConfigs configs;
+
+  bool get isHorizontalAxis => configs.carouselDirection == Axis.horizontal;
 
   @override
   _JigsawPuzzleState createState() => _JigsawPuzzleState();
@@ -72,18 +95,15 @@ class _JigsawPuzzleState extends State<JigsawPuzzle> {
   @override
   void initState() {
     super.initState();
-    if (widget.autoStartPuzzle == true) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        Future<void>.delayed(const Duration(milliseconds: 100))
-            .whenComplete(() => widget.puzzleKey.currentState?.generate());
-      });
+    if (widget.configs.autoStartPuzzle == true) {
+      _tryAutoStartPuzzle(widget.puzzleKey, configs: widget.configs);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return JigsawWidget(
-      key: widget.puzzleKey,
+      puzzleKey: widget.puzzleKey,
       configs: widget.configs,
       child: Image(
         fit: widget.imageFit,
@@ -96,11 +116,12 @@ class _JigsawPuzzleState extends State<JigsawPuzzle> {
 
 class JigsawWidget extends StatefulWidget {
   const JigsawWidget({
-    Key? key,
+    required this.puzzleKey,
     required this.configs,
     required this.child,
-  }) : super(key: key);
+  }) : super(key: puzzleKey);
 
+  final GlobalKey<JigsawWidgetState> puzzleKey;
   final Widget child;
   final JigsawConfigs configs;
 
@@ -443,6 +464,12 @@ class JigsawWidgetState extends State<JigsawWidget> {
     if (blockDone.isNotEmpty && blockNotDone.isEmpty) {
       finishAndReveal();
       configs.onFinished?.call();
+    }
+
+    if (widget.configs.autoStartOnTapImage == true &&
+        blockNotDone.isEmpty &&
+        blockDone.isEmpty) {
+      _tryAutoStartPuzzle(widget.puzzleKey, configs: widget.configs);
     }
 
     if (_index == null) {
