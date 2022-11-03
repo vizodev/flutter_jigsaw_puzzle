@@ -25,6 +25,7 @@ class JigsawConfigs {
     this.carouselSize = 160,
     this.outlineCanvas = true,
     this.outlinesWidthFactor = 1,
+    this.autoStartDelay,
     this.autoStartOnTapImage = false,
     this.snapSensitivity = .5,
   });
@@ -52,6 +53,9 @@ class JigsawConfigs {
   /// Auto generate blocks
   final bool autoStartPuzzle;
 
+  /// used when [autoStartPuzzle] is true
+  final Duration? autoStartDelay;
+
   /// Generate blocks on tap image
   final bool autoStartOnTapImage;
 
@@ -61,13 +65,12 @@ class JigsawConfigs {
 
 void _tryAutoStartPuzzle(GlobalKey<JigsawWidgetState> puzzleKey,
     {JigsawConfigs? configs}) {
-  WidgetsBinding.instance.addPostFrameCallback((_) {
-    Future<void>.delayed(const Duration(milliseconds: 100)).whenComplete(
-      () => puzzleKey.currentState
-          ?.generate()
-          .whenComplete(() => configs?.onAutoStarted?.call()),
-    );
-  });
+  print('_tryAutoStartPuzzle...');
+  if (puzzleKey.currentState?.mounted == true) {
+    puzzleKey.currentState!
+        .generate()
+        .whenComplete(() => configs?.onAutoStarted?.call());
+  }
 }
 
 ///
@@ -92,14 +95,6 @@ class JigsawPuzzle extends StatefulWidget {
 }
 
 class _JigsawPuzzleState extends State<JigsawPuzzle> {
-  @override
-  void initState() {
-    super.initState();
-    if (widget.configs.autoStartPuzzle == true) {
-      _tryAutoStartPuzzle(widget.puzzleKey, configs: widget.configs);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return JigsawWidget(
@@ -150,15 +145,30 @@ class JigsawWidgetState extends State<JigsawWidget> {
   Offset _pos = Offset.zero;
   int? _index;
 
+  Timer? _autoStartTimer;
+
   @override
   void initState() {
+    super.initState();
+    print('INIT');
     _carouselController = CarouselController();
 
-    print('INIT');
-    super.initState();
+    if (widget.configs.autoStartPuzzle == true) {
+      _autoStartTimer = Timer(
+          widget.configs.autoStartDelay ?? const Duration(milliseconds: 100),
+          () => _tryAutoStartPuzzle(widget.puzzleKey, configs: widget.configs));
+    }
+  }
+
+  @override
+  void dispose() {
+    _autoStartTimer?.cancel();
+    _autoStartTimer = null;
+    super.dispose();
   }
 
   Future<ui.Image?> _getImageFromWidget() async {
+    print('HEY');
     final RenderRepaintBoundary boundary = _repaintKey.currentContext!
         .findRenderObject()! as RenderRepaintBoundary;
 
@@ -174,6 +184,11 @@ class JigsawWidgetState extends State<JigsawWidget> {
   }
 
   Future<void> generate() async {
+    if (images.isNotEmpty) {
+      print('Something wrong with ${JigsawPuzzle}');
+      return;
+    }
+
     images = [[]];
 
     fullImage ??= await _getImageFromWidget();
@@ -265,6 +280,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
     blocksNotifier.notifyListeners();
     print('GENERATE!');
     setState(() {});
+    return;
   }
 
   void reset() {
@@ -466,13 +482,15 @@ class JigsawWidgetState extends State<JigsawWidget> {
       configs.onFinished?.call();
     }
 
-    if (widget.configs.autoStartOnTapImage == true &&
-        blockNotDone.isEmpty &&
-        blockDone.isEmpty) {
-      _tryAutoStartPuzzle(widget.puzzleKey, configs: widget.configs);
-    }
-
     if (_index == null) {
+      if (widget.configs.autoStartOnTapImage == true &&
+          blockNotDone.isEmpty &&
+          blockDone.isEmpty) {
+        _tryAutoStartPuzzle(widget.puzzleKey, configs: widget.configs);
+        _autoStartTimer?.cancel();
+        _autoStartTimer = null;
+      }
+
       /// When no widget owns this controller
       if (_carouselController?.ready == false) {
         return;
