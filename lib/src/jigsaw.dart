@@ -100,7 +100,7 @@ class _JigsawPuzzleState extends State<JigsawPuzzle> {
     return JigsawWidget(
       puzzleKey: widget.puzzleKey,
       configs: widget.configs,
-      child: Image(
+      imageChild: Image(
         fit: widget.imageFit,
         image: widget.image,
         filterQuality: FilterQuality.medium,
@@ -113,11 +113,11 @@ class JigsawWidget extends StatefulWidget {
   const JigsawWidget({
     required this.puzzleKey,
     required this.configs,
-    required this.child,
+    required this.imageChild,
   }) : super(key: puzzleKey);
 
   final GlobalKey<JigsawWidgetState> puzzleKey;
-  final Widget child;
+  final Image imageChild;
   final JigsawConfigs configs;
 
   @override
@@ -374,11 +374,11 @@ class JigsawWidgetState extends State<JigsawWidget> {
                     handleBlockPointerMove(event, blockNotDone),
                 child: Stack(
                   children: [
-                    /// Background opaque Image
+                    /// Background faded Image
                     Positioned.fill(
                       child: Opacity(
                         opacity: (blocks.isEmpty || _isGameFinished) ? 1 : .25,
-                        child: KeyedSubtree(child: widget.child),
+                        child: widget.imageChild,
                       ),
                     ),
                     Offstage(
@@ -444,7 +444,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
                       Positioned.fill(
                         child: RepaintBoundary(
                           key: _repaintKey,
-                          child: widget.child,
+                          child: widget.imageChild,
                         ),
                       ),
                   ],
@@ -689,7 +689,7 @@ class _PuzzlePiecePainter extends CustomPainter {
     if (imageBox.isDone) {
       final Paint paintDone = Paint()
         ..color = JigsawColors.pieceOutlineDone
-        ..style = PaintingStyle.fill
+        ..style = PaintingStyle.stroke
         ..strokeWidth = (JigsawDesign.strokeCanvasWidth / strokeFactor);
 
       canvas.drawPath(
