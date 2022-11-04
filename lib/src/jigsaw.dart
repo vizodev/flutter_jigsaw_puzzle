@@ -168,7 +168,6 @@ class JigsawWidgetState extends State<JigsawWidget> {
   }
 
   Future<ui.Image?> _getImageFromWidget() async {
-    print('HEY');
     final RenderRepaintBoundary boundary = _repaintKey.currentContext!
         .findRenderObject()! as RenderRepaintBoundary;
 
@@ -185,7 +184,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
 
   Future<void> generate() async {
     if (images.isNotEmpty) {
-      print('Something wrong with ${JigsawPuzzle}');
+      print('Something wrong with JigsawPuzzle');
       return;
     }
 
@@ -314,7 +313,6 @@ class JigsawWidgetState extends State<JigsawWidget> {
               blockDone.length == (configs.gridSize * configs.gridSize) &&
                   blockNotDone.isEmpty;
           print('puzzle index: $_index');
-          print('puzzle isFinished: $_isGameFinished');
 
           final double carouselWidth = direction == Axis.horizontal
               ? MediaQuery.of(context).size.width // null
@@ -376,6 +374,13 @@ class JigsawWidgetState extends State<JigsawWidget> {
                     handleBlockPointerMove(event, blockNotDone),
                 child: Stack(
                   children: [
+                    /// Background opaque Image
+                    Positioned.fill(
+                      child: Opacity(
+                        opacity: (blocks.isEmpty || _isGameFinished) ? 1 : .25,
+                        child: KeyedSubtree(child: widget.child),
+                      ),
+                    ),
                     Offstage(
                       offstage: blocks.isEmpty,
                       child: SizedBox(
@@ -433,6 +438,8 @@ class JigsawWidgetState extends State<JigsawWidget> {
                         ),
                       ),
                     ),
+
+                    /// Background finished Image
                     if (blocks.isEmpty || _isGameFinished)
                       Positioned.fill(
                         child: RepaintBoundary(
@@ -443,17 +450,6 @@ class JigsawWidgetState extends State<JigsawWidget> {
                   ],
                 ),
               ));
-
-          // return ListView(
-          //   physics: const NeverScrollableScrollPhysics(),
-          //   padding: EdgeInsets.zero,
-          //   shrinkWrap: true,
-          //   scrollDirection: widget.carouselDirection,
-          //   children: [
-          //     _puzzleCanvas,
-          //     carouselBlocksWidget ?? const SizedBox.shrink(),
-          //   ],
-          // );
 
           if (direction == Axis.horizontal) {
             return Column(
