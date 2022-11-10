@@ -19,8 +19,8 @@ Future<PaletteGenerator> computePaletteColor(
       ],
       maximumColorCount: 2,
       size: size,
-      region:
-          Rect.fromLTRB(size.width * .1, size.height / 2.35 - 1, size.width * .05, size.height),
+      region: Rect.fromLTRB(
+          0, size.height / 1.5, size.width * .05, size.height * .9),
       timeout: const Duration(seconds: 2),
     );
   } catch (e) {
