@@ -131,6 +131,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
 
   Size? screenSize;
   ui.Image? fullImage;
+  Color? imagePredominantBgColor;
   List<List<BlockClass>> images = <List<BlockClass>>[];
   ValueNotifier<List<BlockClass>> blocksNotifier =
       ValueNotifier<List<BlockClass>>(<BlockClass>[]);
@@ -191,6 +192,14 @@ class JigsawWidgetState extends State<JigsawWidget> {
     images = [[]];
 
     fullImage ??= await _getImageFromWidget();
+
+    /// Cover images have no white bars, is filled
+    if (widget.imageChild.fit?.name != BoxFit.cover.name) {
+      imagePredominantBgColor =
+          (await computePaletteColor(widget.imageChild.image, screenSize))
+              .dominantColor
+              ?.color;
+    }
 
     final int xGrid = configs.gridSize;
     final int yGrid = configs.gridSize;
@@ -253,6 +262,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
             filterQuality: FilterQuality.medium,
             // isAntiAlias: true,
           ),
+          imagePredominantBgColor: imagePredominantBgColor,
           configs: configs,
           isDone: false,
           offsetCenter: offsetCenter,
@@ -582,6 +592,7 @@ class PositionedData {
 class ImageBox {
   ImageBox({
     required this.image,
+    this.imagePredominantBgColor,
     required this.configs,
     required this.isDone,
     required this.offsetCenter,
@@ -591,6 +602,7 @@ class ImageBox {
   });
 
   Widget image;
+  Color? imagePredominantBgColor;
   bool isDone;
   PositionedData posSide;
   Offset offsetCenter;
@@ -654,6 +666,10 @@ class _JigsawBlockPaintingState extends State<JigsawBlockPainting> {
     return ClipPath(
       clipper: _PuzzlePieceClipper(imageBox: widget.imageBox),
       child: CustomPaint(
+        painter: _PuzzlePiecePainter(
+          isForegroundPainter: false,
+          imageBox: widget.imageBox,
+        ),
         foregroundPainter: _PuzzlePiecePainter(
           imageBox: widget.imageBox,
         ),
@@ -665,14 +681,30 @@ class _JigsawBlockPaintingState extends State<JigsawBlockPainting> {
 
 class _PuzzlePiecePainter extends CustomPainter {
   _PuzzlePiecePainter({
+    this.isForegroundPainter = true,
     required this.imageBox,
   });
 
+  bool isForegroundPainter;
   ImageBox imageBox;
 
   @override
   void paint(Canvas canvas, Size size) {
     final strokeFactor = imageBox.configs?.outlinesWidthFactor ?? 1;
+
+    // NEW
+    if (!isForegroundPainter && imageBox.imagePredominantBgColor != null) {
+      final Paint backgroundPaint = Paint()
+        ..style = PaintingStyle.fill
+        ..color = imageBox.imagePredominantBgColor!;
+      canvas.drawPath(
+          getPiecePath(size, imageBox.radiusPoint, imageBox.offsetCenter,
+              imageBox.posSide),
+          backgroundPaint);
+
+      return;
+    }
+
     final Paint paint = Paint()
       ..color = imageBox.isDone
           ? JigsawColors.pieceOutlineDone
