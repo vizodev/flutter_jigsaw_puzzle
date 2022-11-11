@@ -364,11 +364,20 @@ class JigsawWidgetState extends State<JigsawWidget> {
                 }),
               ),
               items: blockNotDone.map((block) {
-                final sizeBlock = block.widget.imageBox.size;
+                final blockSize = block.widget.imageBox.size;
                 return FittedBox(
                   child: SizedBox.fromSize(
-                    size: sizeBlock,
-                    child: block.widget,
+                    size: blockSize,
+                    child: GestureDetector(
+                      onTap: () {
+                        // print('${block.posSide.toStringShort()}');
+                        final blockIndex = blockNotDone.indexOf(block);
+                        if (blockIndex >= 0) {
+                          setState(() => _index = blockIndex);
+                        }
+                      },
+                      child: block.widget,
+                    ),
                   ),
                 );
               }).toList(),
@@ -483,7 +492,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
 
   void handleBlockPointerUp(PointerUpEvent event, List<BlockClass> blockNotDone,
       List<BlockClass> blockDone) {
-    if (blockDone.isNotEmpty && blockNotDone.isEmpty) {
+    if (blockDone.isNotEmpty && blockNotDone.isEmpty /*&& !_isGameFinished*/) {
       finishAndReveal();
       configs.onFinished?.call();
     }
@@ -574,19 +583,39 @@ class BlockClass {
   JigsawBlockPainting widget;
 
   bool get blockIsDone => widget.imageBox.isDone;
+  PositionedData get posSide => widget.imageBox.posSide;
 
   set blockIsDone(bool value) => widget.imageBox.isDone = value;
 }
 
+@immutable
 class PositionedData {
-  PositionedData({
+  const PositionedData({
     required this.top,
     required this.bottom,
     required this.left,
     required this.right,
   });
 
-  int top, bottom, left, right;
+  final int top, bottom, left, right;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is PositionedData &&
+          runtimeType == other.runtimeType &&
+          top == other.top &&
+          bottom == other.bottom &&
+          left == other.left &&
+          right == other.right;
+
+  @override
+  int get hashCode =>
+      top.hashCode ^ bottom.hashCode ^ left.hashCode ^ right.hashCode;
+
+  String toStringShort() {
+    return 'top-bottom: $top/$bottom, left-right: $left/$right';
+  }
 }
 
 class ImageBox {
