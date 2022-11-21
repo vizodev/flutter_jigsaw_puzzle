@@ -167,8 +167,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
   void dispose() {
     _autoStartTimer?.cancel();
     _autoStartTimer = null;
-    // ValueNotifier<List<BlockClass>>(<BlockClass>[])
-    blocksNotifier.dispose();
+    // blocksNotifier.dispose();
     super.dispose();
   }
 
