@@ -67,9 +67,11 @@ void _tryAutoStartPuzzle(GlobalKey<JigsawWidgetState> puzzleKey,
     {JigsawConfigs? configs}) {
   print('_tryAutoStartPuzzle...');
   if (puzzleKey.currentState?.mounted == true) {
-    puzzleKey.currentState!
-        .generate()
-        .whenComplete(() => configs?.onAutoStarted?.call());
+    puzzleKey.currentState!.generate().whenComplete(() {
+      if (puzzleKey.currentState?.mounted == true) {
+        return configs?.onAutoStarted?.call();
+      }
+    });
   }
 }
 
@@ -184,6 +186,9 @@ class JigsawWidgetState extends State<JigsawWidget> {
   }
 
   Future<void> generate() async {
+    if (!mounted) {
+      return;
+    }
     if (images.isNotEmpty) {
       print('Something wrong with JigsawPuzzle');
       return;
@@ -201,6 +206,9 @@ class JigsawWidgetState extends State<JigsawWidget> {
               ?.color;
     }
 
+    if (!mounted) {
+      return;
+    }
     final int xGrid = configs.gridSize;
     final int yGrid = configs.gridSize;
     final double widthPerBlock = fullImage!.width / xGrid;
@@ -492,6 +500,9 @@ class JigsawWidgetState extends State<JigsawWidget> {
 
   void handleBlockPointerUp(PointerUpEvent event, List<BlockClass> blockNotDone,
       List<BlockClass> blockDone) {
+    if (!mounted) {
+      return;
+    }
     if (blockDone.isNotEmpty && blockNotDone.isEmpty /*&& !_isGameFinished*/) {
       finishAndReveal();
       configs.onFinished?.call();
