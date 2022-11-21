@@ -167,6 +167,8 @@ class JigsawWidgetState extends State<JigsawWidget> {
   void dispose() {
     _autoStartTimer?.cancel();
     _autoStartTimer = null;
+    // ValueNotifier<List<BlockClass>>(<BlockClass>[])
+    blocksNotifier.dispose();
     super.dispose();
   }
 
@@ -301,6 +303,9 @@ class JigsawWidgetState extends State<JigsawWidget> {
   }
 
   void reset() {
+    if (!mounted) {
+      return;
+    }
     images.clear();
     _isGameFinished = false;
     blocksNotifier = ValueNotifier<List<BlockClass>>(<BlockClass>[]);
@@ -311,6 +316,9 @@ class JigsawWidgetState extends State<JigsawWidget> {
   }
 
   void finishAndReveal() {
+    if (!mounted) {
+      return;
+    }
     images.clear();
     _isGameFinished = true;
     setState(() {});
