@@ -57,7 +57,8 @@ class MyApp extends StatelessWidget {
                   puzzleKey: puzzleKey,
                   image: const AssetImage('assets/Jigsaw.jpg'),
                   configs: JigsawConfigs(
-                    gridSize: 5,
+                    xPieces: 3,
+                    yPieces: 3,
                     onBlockFitted: () => print('block fitted!'),
                     onFinished: () => print('finished!'),
                   ),
