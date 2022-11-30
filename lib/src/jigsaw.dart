@@ -283,13 +283,9 @@ class JigsawWidgetState extends State<JigsawWidget> {
           final List<BlockClass> blockDone =
               blocks.where((block) => block.blockIsDone).toList();
 
-          // _isGameFinished =
-          //     blockDone.length == (configs.gridSize * configs.gridSize) &&
-          //         blockNotDone.isEmpty;
           _isGameFinished =
               blockDone.length == (configs.xPieces * configs.yPieces) &&
                   blockNotDone.isEmpty;
-          //print('puzzle index: $_index');
 
           final double carouselWidth = direction == Axis.horizontal
               ? MediaQuery.of(context).size.width // null
@@ -297,8 +293,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
           final double carouselHeight = direction == Axis.horizontal
               ? configs.carouselSize * .88
               : (screenSize?.height ?? MediaQuery.of(context).size.height);
-          // print(MediaQuery.of(context).size);
-          // print('carousel: $carouselWidth / $carouselHeight');
+
           _carouselBlocks = Container(
             color: JigsawColors.blocksCarouselBg,
             constraints: BoxConstraints(
@@ -326,32 +321,26 @@ class JigsawWidgetState extends State<JigsawWidget> {
                 viewportFraction: 0.2,
                 enlargeCenterPage: true,
                 enlargeStrategy: CenterPageEnlargeStrategy.height,
-                // onPageChanged: (index, reason) => mounted
-                //     ? setState(() {
-                //         _index = index;
-                //       })
-                //     : null,
               ),
               items: blockNotDone.map((block) {
-                print('index $_index');
                 final blockSize = block.widget.imageBox.size;
                 return FittedBox(
                   child: SizedBox.fromSize(
                     size: blockSize,
                     child: GestureDetector(
+                      onHorizontalDragStart: (details) {
+                        setState(() {
+                          _index = blockNotDone.indexOf(block);
+                        });
+                      },
                       onHorizontalDragUpdate: (e) {
-                        // print('${block.posSide.toStringShort()}');
                         _pos = block.widget.imageBox.offsetCenter;
+                        if (block.blockIsDone) return;
                         final blockIndex = blockNotDone.indexOf(block);
                         if (blockIndex >= 0) {
                           if (!mounted) return;
-
-                          setState(() {
-                            _index = blockIndex;
-
-                            handleBlockPointerMove(
-                                e.globalPosition, blockNotDone);
-                          });
+                          handleBlockPointerMove(
+                              e.globalPosition, blockNotDone);
                         }
                       },
                       child: block.widget,
@@ -378,7 +367,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
                             return;
                           }
                           if (!mounted) return;
-                          if (_index == null) return;
+
                           setState(() {
                             _pos = details.localPosition;
                             _index = map.key;
@@ -386,6 +375,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
                         },
                         onPointerMove: (event) {
                           if (_index == null) return;
+
                           handleBlockPointerMove(event.position, blockNotDone);
                         },
                         child: Container(
@@ -412,9 +402,6 @@ class JigsawWidgetState extends State<JigsawWidget> {
                   Offstage(
                     offstage: blocks.isEmpty,
                     child: SizedBox(
-                      // color: JigsawColors.white,
-                      // width: screenSize?.width,
-                      // height: screenSize?.height,
                       child: CustomPaint(
                         painter: JigsawPainterBackground(
                           blocks,
@@ -476,53 +463,15 @@ class JigsawWidgetState extends State<JigsawWidget> {
         });
   }
 
-  // void handleBlockPointerUp(PointerUpEvent event, List<BlockClass> blockNotDone,
-  //     List<BlockClass> blockDone) {
-  //   if (!mounted) {
-  //     return;
-  //   }
-  //   if (blockDone.isNotEmpty && blockNotDone.isEmpty /*&& !_isGameFinished*/) {
-  //     finishAndReveal();
-  //     configs.onFinished?.call();
-  //   }
-
-  //   if (_index == null) {
-  //     if (widget.configs.autoStartOnTapImage == true &&
-  //         blockNotDone.isEmpty &&
-  //         blockDone.isEmpty) {
-  //       tryAutoStartPuzzle(widget.puzzleKey, configs: widget.configs);
-  //       _autoStartTimer?.cancel();
-  //       _autoStartTimer = null;
-  //     }
-
-  //     /// When no widget owns this controller
-  //     if (_carouselController?.ready == false) {
-  //       return;
-  //     }
-
-  //     _carouselController
-  //         ?.nextPage(duration: const Duration(milliseconds: 1))
-  //         .whenComplete(
-  //       () {
-  //         if (!mounted) return;
-  //         setState(() {});
-  //         // NEW
-  //         if (_index == null && blockNotDone.isNotEmpty) {
-  //           _index = blockNotDone.indexOf(blockNotDone.first);
-  //         }
-  //       },
-  //     );
-  //   }
-  // }
-
   void handleBlockPointerMove(Offset position, List<BlockClass> blockNotDone) {
     if (_index == null) {
       return;
     }
+
     if (blockNotDone.isEmpty) {
       return;
     }
-    print('pos $_pos');
+
     final Offset offset = position - _pos;
     blockNotDone[_index!].offset = offset;
 
