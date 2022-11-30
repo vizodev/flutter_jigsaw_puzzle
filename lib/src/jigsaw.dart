@@ -269,7 +269,6 @@ class JigsawWidgetState extends State<JigsawWidget> {
     }
     images.clear();
     _isGameFinished = true;
-    setState(() {});
   }
 
   ///
@@ -286,6 +285,11 @@ class JigsawWidgetState extends State<JigsawWidget> {
           _isGameFinished =
               blockDone.length == (configs.xPieces * configs.yPieces) &&
                   blockNotDone.isEmpty;
+
+          if (_isGameFinished) {
+            finishAndReveal();
+            configs.onFinished?.call();
+          }
 
           final double carouselWidth = direction == Axis.horizontal
               ? MediaQuery.of(context).size.width // null
