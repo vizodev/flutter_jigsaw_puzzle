@@ -94,6 +94,8 @@ class JigsawWidgetState extends State<JigsawWidget> {
 
   Timer? _autoStartTimer;
 
+  final GlobalKey _listenerKey = GlobalKey();
+
   @override
   void initState() {
     super.initState();
@@ -331,6 +333,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
                 //     : null,
               ),
               items: blockNotDone.map((block) {
+                print('index $_index');
                 final blockSize = block.widget.imageBox.size;
                 return FittedBox(
                   child: SizedBox.fromSize(
@@ -338,9 +341,11 @@ class JigsawWidgetState extends State<JigsawWidget> {
                     child: GestureDetector(
                       onHorizontalDragUpdate: (e) {
                         // print('${block.posSide.toStringShort()}');
+                        _pos = block.widget.imageBox.offsetCenter;
                         final blockIndex = blockNotDone.indexOf(block);
                         if (blockIndex >= 0) {
                           if (!mounted) return;
+
                           setState(() {
                             _index = blockIndex;
 
@@ -356,6 +361,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
               }).toList(),
             ),
           );
+
           final _pieceDragger = [
             if (blockNotDone.isNotEmpty)
               ...blockNotDone.asMap().entries.map(
@@ -372,13 +378,13 @@ class JigsawWidgetState extends State<JigsawWidget> {
                             return;
                           }
                           if (!mounted) return;
+                          if (_index == null) return;
                           setState(() {
                             _pos = details.localPosition;
                             _index = map.key;
                           });
                         },
                         onPointerMove: (event) {
-                          print('drawing ${DateTime.now()}');
                           if (_index == null) return;
                           handleBlockPointerMove(event.position, blockNotDone);
                         },
@@ -470,44 +476,44 @@ class JigsawWidgetState extends State<JigsawWidget> {
         });
   }
 
-  void handleBlockPointerUp(PointerUpEvent event, List<BlockClass> blockNotDone,
-      List<BlockClass> blockDone) {
-    if (!mounted) {
-      return;
-    }
-    if (blockDone.isNotEmpty && blockNotDone.isEmpty /*&& !_isGameFinished*/) {
-      finishAndReveal();
-      configs.onFinished?.call();
-    }
+  // void handleBlockPointerUp(PointerUpEvent event, List<BlockClass> blockNotDone,
+  //     List<BlockClass> blockDone) {
+  //   if (!mounted) {
+  //     return;
+  //   }
+  //   if (blockDone.isNotEmpty && blockNotDone.isEmpty /*&& !_isGameFinished*/) {
+  //     finishAndReveal();
+  //     configs.onFinished?.call();
+  //   }
 
-    if (_index == null) {
-      if (widget.configs.autoStartOnTapImage == true &&
-          blockNotDone.isEmpty &&
-          blockDone.isEmpty) {
-        tryAutoStartPuzzle(widget.puzzleKey, configs: widget.configs);
-        _autoStartTimer?.cancel();
-        _autoStartTimer = null;
-      }
+  //   if (_index == null) {
+  //     if (widget.configs.autoStartOnTapImage == true &&
+  //         blockNotDone.isEmpty &&
+  //         blockDone.isEmpty) {
+  //       tryAutoStartPuzzle(widget.puzzleKey, configs: widget.configs);
+  //       _autoStartTimer?.cancel();
+  //       _autoStartTimer = null;
+  //     }
 
-      /// When no widget owns this controller
-      if (_carouselController?.ready == false) {
-        return;
-      }
+  //     /// When no widget owns this controller
+  //     if (_carouselController?.ready == false) {
+  //       return;
+  //     }
 
-      _carouselController
-          ?.nextPage(duration: const Duration(milliseconds: 1))
-          .whenComplete(
-        () {
-          if (!mounted) return;
-          setState(() {});
-          // NEW
-          if (_index == null && blockNotDone.isNotEmpty) {
-            _index = blockNotDone.indexOf(blockNotDone.first);
-          }
-        },
-      );
-    }
-  }
+  //     _carouselController
+  //         ?.nextPage(duration: const Duration(milliseconds: 1))
+  //         .whenComplete(
+  //       () {
+  //         if (!mounted) return;
+  //         setState(() {});
+  //         // NEW
+  //         if (_index == null && blockNotDone.isNotEmpty) {
+  //           _index = blockNotDone.indexOf(blockNotDone.first);
+  //         }
+  //       },
+  //     );
+  //   }
+  // }
 
   void handleBlockPointerMove(Offset position, List<BlockClass> blockNotDone) {
     if (_index == null) {
@@ -516,9 +522,8 @@ class JigsawWidgetState extends State<JigsawWidget> {
     if (blockNotDone.isEmpty) {
       return;
     }
-
+    print('pos $_pos');
     final Offset offset = position - _pos;
-
     blockNotDone[_index!].offset = offset;
 
     const minSensitivity = 0;
