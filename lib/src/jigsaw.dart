@@ -287,7 +287,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
           _isGameFinished =
               blockDone.length == (configs.xPieces * configs.yPieces) &&
                   blockNotDone.isEmpty;
-          print('puzzle index: $_index');
+          //print('puzzle index: $_index');
 
           final double carouselWidth = direction == Axis.horizontal
               ? MediaQuery.of(context).size.width // null
@@ -324,11 +324,11 @@ class JigsawWidgetState extends State<JigsawWidget> {
                 viewportFraction: 0.2,
                 enlargeCenterPage: true,
                 enlargeStrategy: CenterPageEnlargeStrategy.height,
-                onPageChanged: (index, reason) => mounted
-                    ? setState(() {
-                        _index = index;
-                      })
-                    : null,
+                // onPageChanged: (index, reason) => mounted
+                //     ? setState(() {
+                //         _index = index;
+                //       })
+                //     : null,
               ),
               items: blockNotDone.map((block) {
                 final blockSize = block.widget.imageBox.size;
@@ -336,12 +336,17 @@ class JigsawWidgetState extends State<JigsawWidget> {
                   child: SizedBox.fromSize(
                     size: blockSize,
                     child: GestureDetector(
-                      onTap: () {
+                      onHorizontalDragUpdate: (e) {
                         // print('${block.posSide.toStringShort()}');
                         final blockIndex = blockNotDone.indexOf(block);
                         if (blockIndex >= 0) {
                           if (!mounted) return;
-                          setState(() => _index = blockIndex);
+                          setState(() {
+                            _index = blockIndex;
+
+                            handleBlockPointerMove(
+                                e.globalPosition, blockNotDone);
+                          });
                         }
                       },
                       child: block.widget,
@@ -351,91 +356,93 @@ class JigsawWidgetState extends State<JigsawWidget> {
               }).toList(),
             ),
           );
+          final _pieceDragger = [
+            if (blockNotDone.isNotEmpty)
+              ...blockNotDone.asMap().entries.map(
+                (map) {
+                  return Positioned(
+                    left: map.value.offset.dx,
+                    top: map.value.offset.dy,
+                    child: Offstage(
+                      offstage: _index != map.key,
+                      child: Listener(
+                        onPointerUp: (event) {},
+                        onPointerDown: (details) {
+                          if (map.value.blockIsDone) {
+                            return;
+                          }
+                          if (!mounted) return;
+                          setState(() {
+                            _pos = details.localPosition;
+                            _index = map.key;
+                          });
+                        },
+                        onPointerMove: (event) {
+                          print('drawing ${DateTime.now()}');
+                          if (_index == null) return;
+                          handleBlockPointerMove(event.position, blockNotDone);
+                        },
+                        child: Container(
+                          child: map.value.widget,
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              )
+          ];
 
           final _puzzleCanvas = AspectRatio(
               aspectRatio: 1,
-              child: Listener(
-                onPointerUp: (event) =>
-                    handleBlockPointerUp(event, blockNotDone, blockDone),
-                onPointerMove: (event) =>
-                    handleBlockPointerMove(event, blockNotDone),
-                child: Stack(
-                  children: [
-                    // Background faded Image
+              child: Stack(
+                children: [
+                  // Background faded Image
+                  Positioned.fill(
+                    child: Opacity(
+                      opacity: (blocks.isEmpty || _isGameFinished) ? 1 : .25,
+                      child: widget.imageChild,
+                    ),
+                  ),
+                  Offstage(
+                    offstage: blocks.isEmpty,
+                    child: SizedBox(
+                      // color: JigsawColors.white,
+                      // width: screenSize?.width,
+                      // height: screenSize?.height,
+                      child: CustomPaint(
+                        painter: JigsawPainterBackground(
+                          blocks,
+                          configs: configs,
+                        ),
+                        child: Stack(
+                          children: [
+                            if (blockDone.isNotEmpty)
+                              ...blockDone.map(
+                                (map) {
+                                  return Positioned(
+                                    left: map.offset.dx,
+                                    top: map.offset.dy,
+                                    child: Container(
+                                      child: map.widget,
+                                    ),
+                                  );
+                                },
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  /// Background finished Image
+                  if (blocks.isEmpty || _isGameFinished)
                     Positioned.fill(
-                      child: Opacity(
-                        opacity: (blocks.isEmpty || _isGameFinished) ? 1 : .25,
+                      child: RepaintBoundary(
+                        key: _repaintKey,
                         child: widget.imageChild,
                       ),
                     ),
-                    Offstage(
-                      offstage: blocks.isEmpty,
-                      child: SizedBox(
-                        // color: JigsawColors.white,
-                        // width: screenSize?.width,
-                        // height: screenSize?.height,
-                        child: CustomPaint(
-                          painter: JigsawPainterBackground(
-                            blocks,
-                            configs: configs,
-                          ),
-                          child: Stack(
-                            children: [
-                              if (blockDone.isNotEmpty)
-                                ...blockDone.map(
-                                  (map) {
-                                    return Positioned(
-                                      left: map.offset.dx,
-                                      top: map.offset.dy,
-                                      child: Container(
-                                        child: map.widget,
-                                      ),
-                                    );
-                                  },
-                                ),
-                              if (blockNotDone.isNotEmpty)
-                                ...blockNotDone.asMap().entries.map(
-                                  (map) {
-                                    return Positioned(
-                                      left: map.value.offset.dx,
-                                      top: map.value.offset.dy,
-                                      child: Offstage(
-                                        offstage: _index != map.key,
-                                        child: GestureDetector(
-                                          onTapDown: (details) {
-                                            if (map.value.blockIsDone) {
-                                              return;
-                                            }
-                                            if (!mounted) return;
-                                            setState(() {
-                                              _pos = details.localPosition;
-                                              _index = map.key;
-                                            });
-                                          },
-                                          child: Container(
-                                            child: map.value.widget,
-                                          ),
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    /// Background finished Image
-                    if (blocks.isEmpty || _isGameFinished)
-                      Positioned.fill(
-                        child: RepaintBoundary(
-                          key: _repaintKey,
-                          child: widget.imageChild,
-                        ),
-                      ),
-                  ],
-                ),
+                ],
               ));
 
           if (direction == Axis.horizontal) {
@@ -447,11 +454,16 @@ class JigsawWidgetState extends State<JigsawWidget> {
               ],
             );
           } else {
-            return Row(
-              mainAxisSize: MainAxisSize.min,
+            return Stack(
               children: [
-                carouselBlocksWidget ?? const SizedBox.shrink(),
-                Expanded(child: _puzzleCanvas),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    carouselBlocksWidget ?? const SizedBox.shrink(),
+                    Expanded(child: _puzzleCanvas),
+                  ],
+                ),
+                ..._pieceDragger,
               ],
             );
           }
@@ -497,8 +509,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
     }
   }
 
-  void handleBlockPointerMove(
-      PointerMoveEvent event, List<BlockClass> blockNotDone) {
+  void handleBlockPointerMove(Offset position, List<BlockClass> blockNotDone) {
     if (_index == null) {
       return;
     }
@@ -506,7 +517,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
       return;
     }
 
-    final Offset offset = event.localPosition - _pos;
+    final Offset offset = position - _pos;
 
     blockNotDone[_index!].offset = offset;
 
@@ -521,8 +532,17 @@ class JigsawWidgetState extends State<JigsawWidget> {
             (maxDistanceThreshold - minDistanceThreshold) +
         minDistanceThreshold;
 
-    if ((blockNotDone[_index!].offset - blockNotDone[_index!].offsetDefault)
-            .distance <
+    /// should consider carousel size in this new logic
+    final defaultOffsetAdjusted = Offset(
+      configs.carouselDirection == Axis.vertical
+          ? blockNotDone[_index!].offsetDefault.dx + configs.carouselSize
+          : blockNotDone[_index!].offsetDefault.dx,
+      configs.carouselDirection == Axis.horizontal
+          ? blockNotDone[_index!].offsetDefault.dy + configs.carouselSize
+          : blockNotDone[_index!].offsetDefault.dy,
+    );
+
+    if ((blockNotDone[_index!].offset - defaultOffsetAdjusted).distance <
         distanceThreshold) {
       blockNotDone[_index!].blockIsDone = true;
 
