@@ -507,8 +507,10 @@ class JigsawWidgetState extends State<JigsawWidget> {
         minDistanceThreshold;
 
     /// should consider carousel size in this new logic
+    ///if configs.isRTL == true && carousel direction == vertical
+    /// we dont need to consider carousel size
     final defaultOffsetAdjusted = Offset(
-      configs.carouselDirection == Axis.vertical
+      (configs.carouselDirection == Axis.vertical && !configs.isTextRTL)
           ? blockNotDone[_index!].offsetDefault.dx + configs.carouselSize
           : blockNotDone[_index!].offsetDefault.dx,
       configs.carouselDirection == Axis.horizontal

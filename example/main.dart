@@ -61,6 +61,7 @@ class MyApp extends StatelessWidget {
                     yPieces: 3,
                     onBlockFitted: () => print('block fitted!'),
                     onFinished: () => print('finished!'),
+                    isTextRTL: false,
                   ),
                 ),
               ],

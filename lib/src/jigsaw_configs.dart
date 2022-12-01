@@ -22,6 +22,7 @@ class JigsawConfigs {
     this.autoStartOnTapImage = false,
     this.snapSensitivity = .5,
     this.revealColorsPieces,
+    required this.isTextRTL,
   });
 
   ///Number of horizontal pieces
@@ -62,6 +63,10 @@ class JigsawConfigs {
 
   /// Between 0 and 1: how hard to fit new puzzle piece
   final double snapSensitivity;
+
+  /// The same as TextDirection, need to infom this because is used
+  /// for calculate puzzle's offset
+  final bool isTextRTL;
 }
 
 void tryAutoStartPuzzle(GlobalKey<JigsawWidgetState> puzzleKey,
