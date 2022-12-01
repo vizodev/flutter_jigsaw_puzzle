@@ -135,6 +135,9 @@ class JigsawRevealWidgetState extends State<JigsawWidget> {
       return;
     }
 
+    final _pieceColors =
+        List<Color>.from(configs.revealColorsPieces ?? <Color>[]);
+
     images = [[]];
 
     fullImage ??= await _getImageFromWidget();
@@ -206,7 +209,20 @@ class JigsawRevealWidgetState extends State<JigsawWidget> {
             screenSize!.width / 2 - widthPerBlockTemp / 2,
             screenSize!.height / 2 - heightPerBlockTemp / 2);
 
-        final colors = configs.revealColorsPieces;
+        Color? pieceColor;
+
+        if (configs.revealColorsPieces != null &&
+            configs.revealColorsPieces!.isNotEmpty) {
+          pieceColor =
+              _pieceColors[(math.Random().nextInt(_pieceColors.length))];
+
+          if (configs.revealColorsPieces!.length >= (xGrid * yGrid)) {
+            _pieceColors.remove(pieceColor);
+          }
+        } else {
+          pieceColor = Color((math.Random().nextDouble() * 0xFFFFFF).toInt())
+              .withOpacity(1);
+        }
 
         final ImageBox imageBox = ImageBox(
           image: Image.memory(
@@ -222,10 +238,7 @@ class JigsawRevealWidgetState extends State<JigsawWidget> {
           posSide: jigsawPosSide,
           radiusPoint: minSize,
           size: Size(widthPerBlockTemp, heightPerBlockTemp),
-          pieceColor: (colors != null && colors.isNotEmpty)
-              ? colors[math.Random().nextInt(colors.length)]
-              : Color((math.Random().nextDouble() * 0xFFFFFF).toInt())
-                  .withOpacity(1),
+          pieceColor: pieceColor,
         );
 
         images[y].add(

@@ -71,6 +71,7 @@ class JigsawWidget extends StatefulWidget {
 }
 
 class JigsawWidgetState extends State<JigsawWidget> {
+  final GlobalKey _puzzleAreaKey = GlobalKey();
   final GlobalKey _repaintKey = GlobalKey();
   JigsawConfigs get configs => widget.configs;
   Axis get direction => widget.configs.carouselDirection;
@@ -334,12 +335,35 @@ class JigsawWidgetState extends State<JigsawWidget> {
                   child: SizedBox.fromSize(
                     size: blockSize,
                     child: GestureDetector(
+                      onVerticalDragStart: (details) {
+                        if (configs.carouselDirection == Axis.vertical) return;
+                        setState(() {
+                          _index = blockNotDone.indexOf(block);
+                        });
+                      },
+                      onVerticalDragUpdate: (e) {
+                        if (configs.carouselDirection == Axis.vertical) return;
+                        _pos = block.widget.imageBox.offsetCenter;
+                        if (block.blockIsDone) return;
+                        final blockIndex = blockNotDone.indexOf(block);
+                        if (blockIndex >= 0) {
+                          if (!mounted) return;
+                          handleBlockPointerMove(
+                              e.globalPosition, blockNotDone);
+                        }
+                      },
                       onHorizontalDragStart: (details) {
+                        if (configs.carouselDirection == Axis.horizontal) {
+                          return;
+                        }
                         setState(() {
                           _index = blockNotDone.indexOf(block);
                         });
                       },
                       onHorizontalDragUpdate: (e) {
+                        if (configs.carouselDirection == Axis.horizontal) {
+                          return;
+                        }
                         _pos = block.widget.imageBox.offsetCenter;
                         if (block.blockIsDone) return;
                         final blockIndex = blockNotDone.indexOf(block);
@@ -400,6 +424,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
           ];
 
           final _puzzleCanvas = AspectRatio(
+              key: _puzzleAreaKey,
               aspectRatio: 1,
               child: Stack(
                 children: [
@@ -426,16 +451,8 @@ class JigsawWidgetState extends State<JigsawWidget> {
                                   return Positioned(
                                     left: map.offset.dx,
                                     top: map.offset.dy,
-                                    child: AnimatedScale(
-                                      duration:
-                                          const Duration(milliseconds: 80),
-                                      scale: false
-                                          // blockDone.last == map && animateScale
-                                          ? 1.1
-                                          : 1,
-                                      child: Container(
-                                        child: map.widget,
-                                      ),
+                                    child: Container(
+                                      child: map.widget,
                                     ),
                                   );
                                 },
@@ -458,11 +475,16 @@ class JigsawWidgetState extends State<JigsawWidget> {
               ));
 
           if (direction == Axis.horizontal) {
-            return Column(
-              mainAxisSize: MainAxisSize.min,
+            return Stack(
               children: [
-                Expanded(child: _puzzleCanvas),
-                carouselBlocksWidget ?? const SizedBox.shrink(),
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Expanded(child: _puzzleCanvas),
+                    carouselBlocksWidget ?? const SizedBox.shrink(),
+                  ],
+                ),
+                ..._pieceDragger,
               ],
             );
           } else {
@@ -506,19 +528,19 @@ class JigsawWidgetState extends State<JigsawWidget> {
             (maxDistanceThreshold - minDistanceThreshold) +
         minDistanceThreshold;
 
-    /// should consider carousel size in this new logic
-    ///if configs.isRTL == true && carousel direction == vertical
-    /// we dont need to consider carousel size
-    final defaultOffsetAdjusted = Offset(
-      (configs.carouselDirection == Axis.vertical && !configs.isTextRTL)
-          ? blockNotDone[_index!].offsetDefault.dx + configs.carouselSize
-          : blockNotDone[_index!].offsetDefault.dx,
-      configs.carouselDirection == Axis.horizontal
-          ? blockNotDone[_index!].offsetDefault.dy + configs.carouselSize
-          : blockNotDone[_index!].offsetDefault.dy,
-    );
+    Offset? defaultOffsetAdjusted;
 
-    if ((blockNotDone[_index!].offset - defaultOffsetAdjusted).distance <
+    final RenderBox? renderBox =
+        _puzzleAreaKey.currentContext!.findRenderObject() as RenderBox?;
+
+    if (renderBox != null) {
+      defaultOffsetAdjusted =
+          renderBox.localToGlobal(blockNotDone[_index!].offsetDefault);
+    }
+
+    if ((blockNotDone[_index!].offset -
+                (defaultOffsetAdjusted ?? blockNotDone[_index!].offsetDefault))
+            .distance <
         distanceThreshold) {
       setState(() {
         animatePieceScale = true;

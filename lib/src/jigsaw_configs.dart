@@ -22,7 +22,6 @@ class JigsawConfigs {
     this.autoStartOnTapImage = false,
     this.snapSensitivity = .5,
     this.revealColorsPieces,
-    required this.isTextRTL,
   });
 
   ///Number of horizontal pieces
@@ -31,6 +30,9 @@ class JigsawConfigs {
   ///Number of vertical pieces
   final int yPieces;
 
+  ///Colors used in [JigsawReveal], if total pieces ([xGrid] * [yGrid]) < Colors , then pieces will repeat colors
+  ///If [revealColorsPiece] is null, widget will provide Random Colors
+  ///If [revealColorsPiece.lengh] >= total pieces ([xGrid] * [yGrid]) then piece color wont repeat
   final List<Color>? revealColorsPieces;
 
   final VoidCallback? onBlockFitted;
@@ -63,10 +65,6 @@ class JigsawConfigs {
 
   /// Between 0 and 1: how hard to fit new puzzle piece
   final double snapSensitivity;
-
-  /// The same as TextDirection, need to infom this because is used
-  /// for calculate puzzle's offset
-  final bool isTextRTL;
 }
 
 void tryAutoStartPuzzle(GlobalKey<JigsawWidgetState> puzzleKey,
