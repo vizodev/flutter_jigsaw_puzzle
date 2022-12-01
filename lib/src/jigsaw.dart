@@ -271,6 +271,8 @@ class JigsawWidgetState extends State<JigsawWidget> {
     _isGameFinished = true;
   }
 
+  bool animatePieceScale = false;
+
   ///
   @override
   Widget build(BuildContext context) {
@@ -364,26 +366,31 @@ class JigsawWidgetState extends State<JigsawWidget> {
                     top: map.value.offset.dy,
                     child: Offstage(
                       offstage: _index != map.key,
-                      child: Listener(
-                        onPointerUp: (event) {},
-                        onPointerDown: (details) {
-                          if (map.value.blockIsDone) {
-                            return;
-                          }
-                          if (!mounted) return;
+                      child: AnimatedScale(
+                        duration: const Duration(milliseconds: 80),
+                        scale: animatePieceScale ? 1.1 : 1,
+                        child: Listener(
+                          onPointerUp: (event) {},
+                          onPointerDown: (details) {
+                            if (map.value.blockIsDone) {
+                              return;
+                            }
+                            if (!mounted) return;
 
-                          setState(() {
-                            _pos = details.localPosition;
-                            _index = map.key;
-                          });
-                        },
-                        onPointerMove: (event) {
-                          if (_index == null) return;
+                            setState(() {
+                              _pos = details.localPosition;
+                              _index = map.key;
+                            });
+                          },
+                          onPointerMove: (event) async {
+                            if (_index == null) return;
 
-                          handleBlockPointerMove(event.position, blockNotDone);
-                        },
-                        child: Container(
-                          child: map.value.widget,
+                            await handleBlockPointerMove(
+                                event.position, blockNotDone);
+                          },
+                          child: Container(
+                            child: map.value.widget,
+                          ),
                         ),
                       ),
                     ),
@@ -419,8 +426,16 @@ class JigsawWidgetState extends State<JigsawWidget> {
                                   return Positioned(
                                     left: map.offset.dx,
                                     top: map.offset.dy,
-                                    child: Container(
-                                      child: map.widget,
+                                    child: AnimatedScale(
+                                      duration:
+                                          const Duration(milliseconds: 80),
+                                      scale: false
+                                          // blockDone.last == map && animateScale
+                                          ? 1.1
+                                          : 1,
+                                      child: Container(
+                                        child: map.widget,
+                                      ),
                                     ),
                                   );
                                 },
@@ -467,7 +482,8 @@ class JigsawWidgetState extends State<JigsawWidget> {
         });
   }
 
-  void handleBlockPointerMove(Offset position, List<BlockClass> blockNotDone) {
+  Future<void> handleBlockPointerMove(
+      Offset position, List<BlockClass> blockNotDone) async {
     if (_index == null) {
       return;
     }
@@ -502,16 +518,27 @@ class JigsawWidgetState extends State<JigsawWidget> {
 
     if ((blockNotDone[_index!].offset - defaultOffsetAdjusted).distance <
         distanceThreshold) {
+      setState(() {
+        animatePieceScale = true;
+      });
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+
+      if (_index == null) return;
       blockNotDone[_index!].blockIsDone = true;
 
       blockNotDone[_index!].offset = blockNotDone[_index!].offsetDefault;
-
       _index = null;
 
       // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
       blocksNotifier.notifyListeners();
 
       configs.onBlockFitted?.call();
+      await Future<void>.delayed(const Duration(milliseconds: 80));
+      if (animatePieceScale == true) {
+        setState(() {
+          animatePieceScale = false;
+        });
+      }
     }
 
     if (mounted) setState(() {});
