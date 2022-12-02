@@ -75,6 +75,13 @@ Path getPiecePath(
   path.moveTo(topLeft.dx, topLeft.dy);
 
   if (posSide.top != 0) {
+    // path.cubicTo(
+    //     offsetCenter.dx - radiusPoint,
+    //     topLeft.dy - radiusPoint / 5,
+    //     offsetCenter.dx - radiusPoint / 3,
+    //     topLeft.dy + radiusPoint / 3,
+    //     offsetCenter.dx - radiusPoint / 2,
+    //     topLeft.dy);
     path.extendWithPath(
       calculatePoint(
           axis: Axis.horizontal,
@@ -89,6 +96,13 @@ Path getPiecePath(
   path.lineTo(topRight.dx, topRight.dy);
 
   if (posSide.right != 0) {
+    path.quadraticBezierTo(
+      topRight.dx + (radiusPoint / 8) * (posSide.right > 0 ? -1 : 1),
+      topRight.dy + radiusPoint / 2,
+      topRight.dx,
+      offsetCenter.dy - radiusPoint / 2,
+    );
+
     path.extendWithPath(
         calculatePoint(
             axis: Axis.vertical,
@@ -98,6 +112,13 @@ Path getPiecePath(
             isLeft: false,
             isTop: false),
         Offset.zero);
+
+    path.quadraticBezierTo(
+      topRight.dx + (radiusPoint / 8) * (posSide.right > 0 ? 1 : -1),
+      bottomRight.dy - radiusPoint / 2,
+      topRight.dx,
+      bottomRight.dy,
+    );
   }
   path.lineTo(bottomRight.dx, bottomRight.dy);
 
@@ -115,6 +136,13 @@ Path getPiecePath(
   path.lineTo(bottomLeft.dx, bottomLeft.dy);
 
   if (posSide.left != 0) {
+    //  path.moveTo(fromPoint, point.dy - radiusPoint / 2);
+    path.quadraticBezierTo(
+        bottomLeft.dx + (radiusPoint / 8) * (posSide.left > 0 ? -1 : 1),
+        bottomLeft.dy - radiusPoint / 2,
+        bottomLeft.dx,
+        offsetCenter.dy + radiusPoint / 2);
+
     path.extendWithPath(
         calculatePoint(
             axis: Axis.vertical,
@@ -124,8 +152,16 @@ Path getPiecePath(
             isLeft: true,
             isTop: false),
         Offset.zero);
+
+    path.quadraticBezierTo(
+      bottomLeft.dx + (radiusPoint / 8) * (posSide.left > 0 ? 1 : -1),
+      topLeft.dy + radiusPoint / 2,
+      bottomLeft.dx,
+      topLeft.dy,
+    );
+  } else {
+    path.lineTo(topLeft.dx, topLeft.dy);
   }
-  path.lineTo(topLeft.dx, topLeft.dy);
 
   path.close();
 
