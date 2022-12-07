@@ -429,7 +429,19 @@ class JigsawRevealWidgetState extends State<JigsawWidget> {
           return Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Expanded(child: _puzzleCanvas),
+              Expanded(child: StatefulBuilder(builder: (context, state) {
+                final Color color = blocksNotifier.value.isEmpty
+                    ? Colors.white
+                    : Colors.transparent;
+
+                return AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  foregroundDecoration: BoxDecoration(
+                    color: color,
+                  ),
+                  child: _puzzleCanvas,
+                );
+              })),
             ],
           );
         });
