@@ -506,7 +506,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
 
   Future<void> handleBlockPointerMove(
       Offset position, List<BlockClass> blockNotDone) async {
-    if (_index == null) {
+    if (_index == null || !mounted) {
       return;
     }
 
@@ -545,9 +545,9 @@ class JigsawWidgetState extends State<JigsawWidget> {
       setState(() {
         animatePieceScale = true;
       });
-      await Future<void>.delayed(const Duration(milliseconds: 100));
 
-      if (_index == null) return;
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+      if (_index == null || !mounted) return;
       blockNotDone[_index!].blockIsDone = true;
 
       blockNotDone[_index!].offset = blockNotDone[_index!].offsetDefault;
@@ -558,6 +558,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
 
       configs.onBlockFitted?.call();
       await Future<void>.delayed(const Duration(milliseconds: 80));
+      if (!mounted) return;
       if (animatePieceScale == true) {
         setState(() {
           animatePieceScale = false;
