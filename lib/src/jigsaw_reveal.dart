@@ -7,7 +7,6 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:ui';
 
-//import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_jigsaw_puzzle/src/jigsaw.dart';
@@ -42,7 +41,7 @@ class JigsawReveal extends StatefulWidget {
 class _JigsawRevealState extends State<JigsawReveal> {
   @override
   Widget build(BuildContext context) {
-    return JigsawWidget(
+    return JigsawRevealWidget(
       puzzleKey: widget.revealPuzzleKey,
       configs: widget.configs,
       imageChild: Image(
@@ -54,8 +53,8 @@ class _JigsawRevealState extends State<JigsawReveal> {
   }
 }
 
-class JigsawWidget extends StatefulWidget {
-  const JigsawWidget({
+class JigsawRevealWidget extends StatefulWidget {
+  const JigsawRevealWidget({
     required this.puzzleKey,
     required this.configs,
     required this.imageChild,
@@ -69,7 +68,7 @@ class JigsawWidget extends StatefulWidget {
   JigsawRevealWidgetState createState() => JigsawRevealWidgetState();
 }
 
-class JigsawRevealWidgetState extends State<JigsawWidget> {
+class JigsawRevealWidgetState extends State<JigsawRevealWidget> {
   final GlobalKey _repaintKey = GlobalKey();
   JigsawConfigs get configs => widget.configs;
   Axis get direction => widget.configs.carouselDirection;
@@ -84,10 +83,7 @@ class JigsawRevealWidgetState extends State<JigsawWidget> {
   bool get isGameFinished => _isGameFinished;
   bool _isGameFinished = false;
 
-  final Offset _pos = Offset.zero;
   int? _index;
-
-  Timer? _autoStartTimer;
 
   @override
   void initState() {
@@ -95,7 +91,7 @@ class JigsawRevealWidgetState extends State<JigsawWidget> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       while (!mounted) {
-        await Future<void>.delayed(const Duration(milliseconds: 100));
+        await Future<void>.delayed(const Duration(milliseconds: 10));
       }
       await Future<void>.delayed(const Duration(milliseconds: 100));
       generate();
@@ -104,9 +100,6 @@ class JigsawRevealWidgetState extends State<JigsawWidget> {
 
   @override
   void dispose() {
-    _autoStartTimer?.cancel();
-    _autoStartTimer = null;
-    // blocksNotifier.dispose();
     super.dispose();
   }
 
@@ -131,7 +124,7 @@ class JigsawRevealWidgetState extends State<JigsawWidget> {
       return;
     }
     if (images.isNotEmpty) {
-      print('Something wrong with JigsawPuzzle');
+      print('Something wrong with JigsawReveal');
       return;
     }
 
@@ -141,18 +134,10 @@ class JigsawRevealWidgetState extends State<JigsawWidget> {
     images = [[]];
 
     fullImage ??= await _getImageFromWidget();
-
-    /// Cover images have no white bars, is filled
-    if (widget.imageChild.fit?.name != BoxFit.cover.name) {
-      imagePredominantBgColor =
-          (await computePaletteColor(widget.imageChild.image, screenSize))
-              .dominantColor
-              ?.color;
-    }
-
     if (!mounted) {
       return;
     }
+
     // final int xGrid = configs.gridSize;
     // final int yGrid = configs.gridSize;
     final int xGrid = configs.xPieces;
@@ -231,7 +216,7 @@ class JigsawRevealWidgetState extends State<JigsawWidget> {
             filterQuality: FilterQuality.medium,
             // isAntiAlias: true,
           ),
-          imagePredominantBgColor: imagePredominantBgColor,
+          // imagePredominantBgColor: imagePredominantBgColor,
           configs: configs,
           isDone: false,
           offsetCenter: offsetCenter,
@@ -328,10 +313,6 @@ class JigsawRevealWidgetState extends State<JigsawWidget> {
               blocks.where((block) => !block.blockIsDone).toList();
           final List<BlockClass> blockDone =
               blocks.where((block) => block.blockIsDone).toList();
-
-          // _isGameFinished =
-          //     blockDone.length == (configs.xPieces * configs.yPieces) &&
-          //         blockNotDone.isEmpty;
           print('puzzle index: $_index');
 
           final _puzzleCanvas = AspectRatio(

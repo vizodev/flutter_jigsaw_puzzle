@@ -95,12 +95,9 @@ class JigsawWidgetState extends State<JigsawWidget> {
 
   Timer? _autoStartTimer;
 
-  final GlobalKey _listenerKey = GlobalKey();
-
   @override
   void initState() {
     super.initState();
-    print('INIT');
     _carouselController = CarouselController();
 
     if (widget.configs.autoStartPuzzle == true) {
