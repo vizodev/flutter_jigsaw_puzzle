@@ -71,6 +71,7 @@ class JigsawRevealWidget extends StatefulWidget {
 class JigsawRevealWidgetState extends State<JigsawRevealWidget> {
   final GlobalKey _repaintKey = GlobalKey();
   JigsawConfigs get configs => widget.configs;
+
   Axis get direction => widget.configs.carouselDirection;
 
   Size? screenSize;
@@ -93,7 +94,7 @@ class JigsawRevealWidgetState extends State<JigsawRevealWidget> {
       while (!mounted) {
         await Future<void>.delayed(const Duration(milliseconds: 10));
       }
-      await Future<void>.delayed(const Duration(milliseconds: 100));
+      await Future<void>.delayed(const Duration(milliseconds: 30));
       generate();
     });
   }
@@ -245,7 +246,6 @@ class JigsawRevealWidgetState extends State<JigsawRevealWidget> {
     blocksNotifier.notifyListeners();
     print('GENERATE!');
     if (mounted) setState(() {});
-    return;
   }
 
   void reset() {
@@ -410,16 +410,15 @@ class JigsawRevealWidgetState extends State<JigsawRevealWidget> {
           return Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Expanded(child: StatefulBuilder(builder: (context, state) {
-                final Color color = blocksNotifier.value.isEmpty
-                    ? Colors.white
-                    : Colors.transparent;
+              Expanded(child: Builder(builder: (context) {
+                final Color color =
+                    blocksNotifier.value.isEmpty || images.isEmpty
+                        ? Colors.white
+                        : Colors.transparent;
 
-                return AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  foregroundDecoration: BoxDecoration(
-                    color: color,
-                  ),
+                return Container(
+                  // duration: const Duration(milliseconds: 200),
+                  foregroundDecoration: BoxDecoration(color: color),
                   child: _puzzleCanvas,
                 );
               })),
