@@ -212,7 +212,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
 
         final ImageBox imageBox = ImageBox(
           image: Image.memory(
-            Uint8List.fromList(ui.encodePng(temp, level: 1)),
+            Uint8List.fromList(ui.encodePng(temp, level: 4)),
             fit: BoxFit.contain,
             filterQuality: FilterQuality.medium,
             // isAntiAlias: true,
