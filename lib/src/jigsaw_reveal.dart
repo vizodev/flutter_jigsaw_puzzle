@@ -9,6 +9,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_jigsaw_puzzle/src/jigsaw.dart';
 import 'package:image/image.dart' as ui;
 
@@ -92,10 +93,11 @@ class JigsawRevealWidgetState extends State<JigsawRevealWidget> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       while (!mounted) {
-        await Future<void>.delayed(const Duration(milliseconds: 10));
+        await Future<void>.delayed(const Duration(milliseconds: 5));
       }
-      await Future<void>.delayed(const Duration(milliseconds: 30));
-      generate();
+
+      await SchedulerBinding.instance.endOfFrame;
+      SchedulerBinding.instance.addPostFrameCallback((_) => generate());
     });
   }
 
