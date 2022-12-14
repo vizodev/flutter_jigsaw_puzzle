@@ -9,6 +9,7 @@ import 'dart:ui';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_jigsaw_puzzle/src/puzzle_piece/jigsaw_block_painting.dart';
 import 'package:flutter_jigsaw_puzzle/src/puzzle_piece/piece_block.dart';
 import 'package:image/image.dart' as ui;
@@ -101,9 +102,13 @@ class JigsawWidgetState extends State<JigsawWidget> {
     _carouselController = CarouselController();
 
     if (widget.configs.autoStartPuzzle == true) {
-      _autoStartTimer = Timer(
-          widget.configs.autoStartDelay ?? const Duration(milliseconds: 100),
-          () => tryAutoStartPuzzle(widget.puzzleKey, configs: widget.configs));
+      SchedulerBinding.instance.addPostFrameCallback((_) async {
+        await SchedulerBinding.instance.endOfFrame;
+        _autoStartTimer = Timer(
+            widget.configs.autoStartDelay ?? const Duration(milliseconds: 100),
+            () =>
+                tryAutoStartPuzzle(widget.puzzleKey, configs: widget.configs));
+      });
     }
   }
 

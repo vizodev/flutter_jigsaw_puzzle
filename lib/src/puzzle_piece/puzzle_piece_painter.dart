@@ -22,7 +22,7 @@ class PuzzlePiecePainter extends CustomPainter {
     if (isJigsawReveal) {
       return _jigsawRevealPaint(canvas, size);
     } else {
-      return _standartJigsawPaint(canvas, size);
+      return _standardJigsawPaint(canvas, size);
     }
   }
 
@@ -66,21 +66,21 @@ class PuzzlePiecePainter extends CustomPainter {
       border,
     );
 
-    if (imageBox.isDone) {
-      final Paint paintDone = Paint()
-        ..color = Colors.red
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2;
-
-      canvas.drawPath(
-        getPiecePath(size, imageBox.radiusPoint, imageBox.offsetCenter,
-            imageBox.posSide),
-        paintDone,
-      );
-    }
+    // if (imageBox.isDone) {
+    //   final Paint paintDone = Paint()
+    //     ..color = Colors.red
+    //     ..style = PaintingStyle.stroke
+    //     ..strokeWidth = 2;
+    //
+    //   canvas.drawPath(
+    //     getPiecePath(size, imageBox.radiusPoint, imageBox.offsetCenter,
+    //         imageBox.posSide),
+    //     paintDone,
+    //   );
+    // }
   }
 
-  void _standartJigsawPaint(Canvas canvas, Size size) {
+  void _standardJigsawPaint(Canvas canvas, Size size) {
     final strokeFactor = imageBox.configs?.outlinesWidthFactor ?? 1;
 
     // NEW

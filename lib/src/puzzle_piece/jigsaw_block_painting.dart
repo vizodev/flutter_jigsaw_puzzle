@@ -24,18 +24,19 @@ class _JigsawBlockPaintingState extends State<JigsawBlockPainting> {
   @override
   Widget build(BuildContext context) {
     return ClipPath(
-        clipper: PuzzlePieceClipper(imageBox: widget.imageBox),
-        child: CustomPaint(
-          painter: PuzzlePiecePainter(
-            isJigsawReveal: widget.isJigsawReveal,
-            isForegroundPainter: false,
-            imageBox: widget.imageBox,
-          ),
-          foregroundPainter: PuzzlePiecePainter(
-            isJigsawReveal: widget.isJigsawReveal,
-            imageBox: widget.imageBox,
-          ),
-          child: widget.imageBox.image,
-        ));
+      clipper: PuzzlePieceClipper(imageBox: widget.imageBox),
+      child: CustomPaint(
+        painter: PuzzlePiecePainter(
+          isJigsawReveal: widget.isJigsawReveal,
+          isForegroundPainter: false,
+          imageBox: widget.imageBox,
+        ),
+        foregroundPainter: PuzzlePiecePainter(
+          isJigsawReveal: widget.isJigsawReveal,
+          imageBox: widget.imageBox,
+        ),
+        child: widget.imageBox.image,
+      ),
+    );
   }
 }
