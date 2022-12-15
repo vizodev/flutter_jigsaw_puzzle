@@ -22,6 +22,7 @@ class JigsawConfigs {
     this.autoStartOnTapImage = false,
     this.snapSensitivity = .5,
     this.revealColorsPieces,
+    this.backgroundColor,
   });
 
   ///Number of horizontal pieces
@@ -34,6 +35,7 @@ class JigsawConfigs {
   ///If [revealColorsPiece] is null, widget will provide Random Colors
   ///If [revealColorsPiece.lengh] >= total pieces ([xGrid] * [yGrid]) then piece color wont repeat
   final List<Color>? revealColorsPieces;
+  final Color? backgroundColor;
 
   final VoidCallback? onBlockFitted;
   final VoidCallback? onFinished;

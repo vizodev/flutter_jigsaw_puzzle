@@ -112,17 +112,11 @@ class JigsawRevealWidgetState extends State<JigsawRevealWidget> {
     super.dispose();
   }
 
-  void _initImageFromWidget() {
-    final RenderRepaintBoundary boundary = _repaintKey.currentContext!
-        .findRenderObject()! as RenderRepaintBoundary;
-
-    screenSize = boundary.size;
-  }
-
   Future<ui.Image?> _getImageFromWidget() async {
     final RenderRepaintBoundary boundary = _repaintKey.currentContext!
         .findRenderObject()! as RenderRepaintBoundary;
 
+    screenSize = boundary.size;
     final img = await boundary.toImage();
     final byteData = await img.toByteData(format: ImageByteFormat.png);
     final pngBytes = byteData?.buffer.asUint8List();
@@ -149,7 +143,6 @@ class JigsawRevealWidgetState extends State<JigsawRevealWidget> {
     images = [[]];
 
     fullImage ??= await _getImageFromWidget();
-    _initImageFromWidget();
     if (!mounted) {
       return;
     }
@@ -271,7 +264,7 @@ class JigsawRevealWidgetState extends State<JigsawRevealWidget> {
     blocksNotifier = ValueNotifier<List<BlockClass>>(<BlockClass>[]);
     // TODO: hack!
     // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
-    blocksNotifier.notifyListeners();
+    // blocksNotifier.notifyListeners();
     if (mounted) setState(() {});
   }
 
@@ -413,7 +406,7 @@ class JigsawRevealWidgetState extends State<JigsawRevealWidget> {
                 child: Builder(builder: (context) {
                   final Color color =
                       blocksNotifier.value.isEmpty || images.isEmpty
-                          ? Colors.white
+                          ? (widget.configs.backgroundColor ?? Colors.white)
                           : Colors.transparent;
 
                   return Container(
