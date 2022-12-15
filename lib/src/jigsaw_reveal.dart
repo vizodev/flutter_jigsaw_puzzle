@@ -208,10 +208,10 @@ class JigsawRevealWidgetState extends State<JigsawRevealWidget> {
         final Uint8List cropped = fullImage!
             .apply(
               BitmapCrop.fromLTWH(
-                  left: xAxis.round(),
-                  top: yAxis.round(),
-                  width: widthPerBlockTemp.round(),
-                  height: heightPerBlockTemp.round()),
+                  left: xAxis.truncate(),
+                  top: yAxis.truncate(),
+                  width: widthPerBlockTemp.floor(),
+                  height: heightPerBlockTemp.truncate()),
             )
             .buildHeaded();
 
