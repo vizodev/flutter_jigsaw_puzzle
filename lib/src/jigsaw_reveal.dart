@@ -10,13 +10,17 @@ import 'package:bitmap/bitmap.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter_jigsaw_puzzle/src/extensions.dart';
 import 'package:flutter_jigsaw_puzzle/src/jigsaw.dart';
+import 'package:flutter_jigsaw_puzzle/src/jigsaw_colors.dart';
 // import 'package:image/image.dart' as ui;
 
 import '../flutter_jigsaw_puzzle.dart';
 import 'image_box.dart';
 import 'puzzle_piece/jigsaw_block_painting.dart';
 import 'puzzle_piece/piece_block.dart';
+
+final _random = math.Random().toSuperRandom();
 
 ///
 class JigsawReveal extends StatefulWidget {
@@ -159,13 +163,12 @@ class JigsawRevealWidgetState extends State<JigsawRevealWidget> {
 
     /// Matrix XY
     for (var y = 0; y < yGrid; y++) {
-      final random = math.Random();
       final tempImages = <BlockClass>[];
       images.add(tempImages);
 
       for (var x = 0; x < xGrid; x++) {
-        final int randomPosRow = random.nextInt(2).isEven ? 1 : -1;
-        final int randomPosCol = random.nextInt(2).isEven ? 1 : -1;
+        final int randomPosRow = _random.nextInt(2).isEven ? 1 : -1;
+        final int randomPosCol = _random.nextInt(2).isEven ? 1 : -1;
         // Offset offsetCenter = Offset(widthPerBlock / 2, heightPerBlock / 2);
 
         final PositionedData jigsawPosSide = PositionedData(
@@ -175,24 +178,25 @@ class JigsawRevealWidgetState extends State<JigsawRevealWidget> {
           right: x == xGrid - 1 ? 0 : randomPosRow,
         );
 
-        final double minSize = math.min(widthPerBlock, heightPerBlock) / 15 * 4;
+        final double jointSize =
+            JigsawDesign.jointSize(widthPerBlock, heightPerBlock);
         double xAxis = widthPerBlock * x;
         double yAxis = heightPerBlock * y;
 
         final Offset offsetCenter = Offset(
-          (widthPerBlock / 2) + (jigsawPosSide.left == 1 ? minSize : 0),
-          (heightPerBlock / 2) + (jigsawPosSide.top == 1 ? minSize : 0),
+          (widthPerBlock / 2) + (jigsawPosSide.left == 1 ? jointSize : 0),
+          (heightPerBlock / 2) + (jigsawPosSide.top == 1 ? jointSize : 0),
         );
 
-        xAxis -= jigsawPosSide.left == 1 ? minSize : 0;
-        yAxis -= jigsawPosSide.top == 1 ? minSize : 0;
+        xAxis -= jigsawPosSide.left == 1 ? jointSize : 0;
+        yAxis -= jigsawPosSide.top == 1 ? jointSize : 0;
 
         final double widthPerBlockTemp = widthPerBlock +
-            (jigsawPosSide.left == 1 ? minSize : 0) +
-            (jigsawPosSide.right == 1 ? minSize : 0);
+            (jigsawPosSide.left == 1 ? jointSize : 0) +
+            (jigsawPosSide.right == 1 ? jointSize : 0);
         final double heightPerBlockTemp = heightPerBlock +
-            (jigsawPosSide.top == 1 ? minSize : 0) +
-            (jigsawPosSide.bottom == 1 ? minSize : 0);
+            (jigsawPosSide.top == 1 ? jointSize : 0) +
+            (jigsawPosSide.bottom == 1 ? jointSize : 0);
 
         // final ui.Image temp = ui.copyCrop(
         //   fullImage!,
@@ -216,18 +220,16 @@ class JigsawRevealWidgetState extends State<JigsawRevealWidget> {
             screenSize!.height / 2 - heightPerBlockTemp / 2);
 
         Color? pieceColor;
-
         if (configs.revealColorsPieces != null &&
             configs.revealColorsPieces!.isNotEmpty) {
-          pieceColor =
-              _pieceColors[(math.Random().nextInt(_pieceColors.length))];
+          pieceColor = _pieceColors[(_random.nextInt(_pieceColors.length))];
 
           if (configs.revealColorsPieces!.length >= (xGrid * yGrid)) {
             _pieceColors.remove(pieceColor);
           }
         } else {
-          pieceColor = Color((math.Random().nextDouble() * 0xFFFFFF).toInt())
-              .withOpacity(1);
+          pieceColor =
+              Color((_random.nextDouble() * 0xFFFFFF).toInt()).withOpacity(1);
         }
 
         final ImageBox imageBox = ImageBox(
@@ -239,13 +241,13 @@ class JigsawRevealWidgetState extends State<JigsawRevealWidget> {
             excludeFromSemantics: true,
           ),
           // imagePredominantBgColor: imagePredominantBgColor,
+          pieceColor: pieceColor,
           configs: configs,
           isDone: false,
+          size: Size(widthPerBlockTemp, heightPerBlockTemp),
           offsetCenter: offsetCenter,
           posSide: jigsawPosSide,
-          radiusPoint: minSize,
-          size: Size(widthPerBlockTemp, heightPerBlockTemp),
-          pieceColor: pieceColor,
+          radiusPoint: jointSize,
         );
 
         images[y].add(

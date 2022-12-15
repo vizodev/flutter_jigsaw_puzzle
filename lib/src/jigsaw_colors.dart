@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import 'package:palette_generator/palette_generator.dart';
@@ -53,4 +55,9 @@ class JigsawDesign {
 
   static const strokeCanvasWidth = 5.5;
   static const strokePieceWidth = 4.0;
+
+  // TODO: [JigsawConfigs]
+  /// Indent outside/inside the box piece shape
+  static double jointSize(double widthPerBlock, double heightPerBlock) =>
+      math.min(widthPerBlock, heightPerBlock) / 18 * 4;
 }

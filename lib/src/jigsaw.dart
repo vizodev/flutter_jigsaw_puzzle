@@ -11,6 +11,7 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter_jigsaw_puzzle/src/extensions.dart';
 import 'package:flutter_jigsaw_puzzle/src/puzzle_piece/jigsaw_block_painting.dart';
 import 'package:flutter_jigsaw_puzzle/src/puzzle_piece/piece_block.dart';
 // import 'package:image/image.dart' as ui;
@@ -20,6 +21,8 @@ import 'image_box.dart';
 import 'jigsaw_colors.dart';
 import 'jigsaw_configs.dart';
 import 'puzzle_piece/puzzle_piece_clipper.dart';
+
+final _random = math.Random().toSuperRandom();
 
 ///
 class JigsawPuzzle extends StatefulWidget {
@@ -172,13 +175,12 @@ class JigsawWidgetState extends State<JigsawWidget> {
 
     /// Matrix XY
     for (var y = 0; y < yGrid; y++) {
-      final random = math.Random();
       final tempImages = <BlockClass>[];
       images.add(tempImages);
 
       for (var x = 0; x < xGrid; x++) {
-        final int randomPosRow = random.nextInt(2).isEven ? 1 : -1;
-        final int randomPosCol = random.nextInt(2).isEven ? 1 : -1;
+        final int randomPosRow = _random.nextInt(2).isEven ? 1 : -1;
+        final int randomPosCol = _random.nextInt(2).isEven ? 1 : -1;
         // Offset offsetCenter = Offset(widthPerBlock / 2, heightPerBlock / 2);
 
         final PositionedData jigsawPosSide = PositionedData(
@@ -188,24 +190,25 @@ class JigsawWidgetState extends State<JigsawWidget> {
           right: x == xGrid - 1 ? 0 : randomPosRow,
         );
 
-        final double minSize = math.min(widthPerBlock, heightPerBlock) / 15 * 4;
+        final double jointSize =
+            JigsawDesign.jointSize(widthPerBlock, heightPerBlock);
         double xAxis = widthPerBlock * x;
         double yAxis = heightPerBlock * y;
 
         final Offset offsetCenter = Offset(
-          (widthPerBlock / 2) + (jigsawPosSide.left == 1 ? minSize : 0),
-          (heightPerBlock / 2) + (jigsawPosSide.top == 1 ? minSize : 0),
+          (widthPerBlock / 2) + (jigsawPosSide.left == 1 ? jointSize : 0),
+          (heightPerBlock / 2) + (jigsawPosSide.top == 1 ? jointSize : 0),
         );
 
-        xAxis -= jigsawPosSide.left == 1 ? minSize : 0;
-        yAxis -= jigsawPosSide.top == 1 ? minSize : 0;
+        xAxis -= jigsawPosSide.left == 1 ? jointSize : 0;
+        yAxis -= jigsawPosSide.top == 1 ? jointSize : 0;
 
         final double widthPerBlockTemp = widthPerBlock +
-            (jigsawPosSide.left == 1 ? minSize : 0) +
-            (jigsawPosSide.right == 1 ? minSize : 0);
+            (jigsawPosSide.left == 1 ? jointSize : 0) +
+            (jigsawPosSide.right == 1 ? jointSize : 0);
         final double heightPerBlockTemp = heightPerBlock +
-            (jigsawPosSide.top == 1 ? minSize : 0) +
-            (jigsawPosSide.bottom == 1 ? minSize : 0);
+            (jigsawPosSide.top == 1 ? jointSize : 0) +
+            (jigsawPosSide.bottom == 1 ? jointSize : 0);
 
         // final ui.Image temp = ui.copyCrop(
         //   fullImage!,
@@ -239,10 +242,10 @@ class JigsawWidgetState extends State<JigsawWidget> {
           imagePredominantBgColor: imagePredominantBgColor,
           configs: configs,
           isDone: false,
+          size: Size(widthPerBlockTemp, heightPerBlockTemp),
           offsetCenter: offsetCenter,
           posSide: jigsawPosSide,
-          radiusPoint: minSize,
-          size: Size(widthPerBlockTemp, heightPerBlockTemp),
+          radiusPoint: jointSize,
         );
 
         images[y].add(
@@ -258,8 +261,9 @@ class JigsawWidgetState extends State<JigsawWidget> {
       }
     }
 
-    blocksNotifier.value = images.expand((image) => image).toList();
-    // blocksNotifier.value.shuffle();
+    final allNotifiers = images.expand((image) => image).toList()
+      ..shuffle(_random);
+    blocksNotifier.value = allNotifiers;
     // TODO: hack!
     // ignore: invalid_use_of_visible_for_testing_member, invalid_use_of_protected_member
     // blocksNotifier.notifyListeners();
