@@ -334,10 +334,11 @@ class JigsawRevealWidgetState extends State<JigsawRevealWidget> {
           //     blocks.where((block) => block.blockIsDone).toList();
           print('puzzle index: $_index');
 
+          const padding = EdgeInsets.all(20);
           final _puzzleCanvas = AspectRatio(
             aspectRatio: 1,
             child: Padding(
-              padding: const EdgeInsets.all(20),
+              padding: padding,
               child: Stack(
                 children: [
                   // Background faded Image
@@ -409,21 +410,23 @@ class JigsawRevealWidgetState extends State<JigsawRevealWidget> {
             ),
           );
 
-          return Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+          return Stack(
+            fit: StackFit.expand,
+            alignment: Alignment.center,
             children: [
-              Expanded(
-                child: Builder(builder: (context) {
-                  final Color color =
-                      blocksNotifier.value.isEmpty || images.isEmpty
-                          ? (/*widget.configs.backgroundColor ??*/ Colors.white)
-                          : Colors.transparent;
+              Container(
+                child: _puzzleCanvas,
+              ),
 
-                  return Container(
-                    foregroundDecoration: BoxDecoration(color: color),
-                    child: _puzzleCanvas,
-                  );
-                }),
+              /// To prevent image to appear during loading
+              IgnorePointer(
+                child: Container(
+                  foregroundDecoration: BoxDecoration(
+                      color: blocksNotifier.value.isEmpty || images.isEmpty
+                          ? (widget.configs.backgroundColor ?? Colors.white)
+                          : Colors.transparent),
+                  margin: padding,
+                ),
               ),
             ],
           );
