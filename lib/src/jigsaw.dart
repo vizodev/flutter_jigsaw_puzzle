@@ -6,13 +6,14 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:ui';
 
+import 'package:bitmap/bitmap.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_jigsaw_puzzle/src/puzzle_piece/jigsaw_block_painting.dart';
 import 'package:flutter_jigsaw_puzzle/src/puzzle_piece/piece_block.dart';
-import 'package:image/image.dart' as ui;
+// import 'package:image/image.dart' as ui;
 
 import 'error.dart';
 import 'image_box.dart';
@@ -78,7 +79,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
   Axis get direction => widget.configs.carouselDirection;
 
   Size? screenSize;
-  ui.Image? fullImage;
+  Bitmap? fullImage; // ui.Image? fullImage;
   Color? imagePredominantBgColor;
   List<List<BlockClass>> images = <List<BlockClass>>[];
   ValueNotifier<List<BlockClass>> blocksNotifier =
@@ -105,7 +106,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
       SchedulerBinding.instance.addPostFrameCallback((_) async {
         await SchedulerBinding.instance.endOfFrame;
         _autoStartTimer = Timer(
-            widget.configs.autoStartDelay ?? const Duration(milliseconds: 100),
+            widget.configs.autoStartDelay ?? const Duration(),
             () =>
                 tryAutoStartPuzzle(widget.puzzleKey, configs: widget.configs));
       });
@@ -120,19 +121,22 @@ class JigsawWidgetState extends State<JigsawWidget> {
     super.dispose();
   }
 
-  Future<ui.Image?> _getImageFromWidget() async {
+  // Future<ui.Image?>
+  Future<Bitmap> _getImageFromWidget() async {
     final RenderRepaintBoundary boundary = _repaintKey.currentContext!
         .findRenderObject()! as RenderRepaintBoundary;
 
     screenSize = boundary.size;
-    final img = await boundary.toImage();
-    final byteData = await img.toByteData(format: ImageByteFormat.png);
-    final pngBytes = byteData?.buffer.asUint8List();
+    final imgBytes = await (await boundary.toImage()).toByteData();
+    final Bitmap bitmap = Bitmap.fromHeadless(screenSize!.width.round(),
+        screenSize!.height.round(), imgBytes!.buffer.asUint8List());
+    return bitmap;
 
-    if (pngBytes == null) {
-      throw InvalidImageException();
-    }
-    return ui.decodeImage(List<int>.from(pngBytes));
+    // final pngBytes = byteData?.buffer.asUint8List();
+    // if (pngBytes == null) {
+    //   throw InvalidImageException();
+    // }
+    // return ui.decodeImage(List<int>.from(pngBytes));
   }
 
   Future<void> generate() async {
@@ -163,8 +167,8 @@ class JigsawWidgetState extends State<JigsawWidget> {
     // final int yGrid = configs.gridSize;
     final int xGrid = configs.xPieces;
     final int yGrid = configs.yPieces;
-    final double widthPerBlock = fullImage!.width / xGrid;
-    final double heightPerBlock = fullImage!.height / yGrid;
+    final double widthPerBlock = screenSize!.width / xGrid;
+    final double heightPerBlock = screenSize!.height / yGrid;
 
     /// Matrix XY
     for (var y = 0; y < yGrid; y++) {
@@ -203,13 +207,22 @@ class JigsawWidgetState extends State<JigsawWidget> {
             (jigsawPosSide.top == 1 ? minSize : 0) +
             (jigsawPosSide.bottom == 1 ? minSize : 0);
 
-        final ui.Image temp = ui.copyCrop(
-          fullImage!,
-          xAxis.round(),
-          yAxis.round(),
-          widthPerBlockTemp.round(),
-          heightPerBlockTemp.round(),
-        );
+        // final ui.Image temp = ui.copyCrop(
+        //   fullImage!,
+        //   xAxis.round(),
+        //   yAxis.round(),
+        //   widthPerBlockTemp.round(),
+        //   heightPerBlockTemp.round(),
+        // );
+        final Uint8List cropped = fullImage!
+            .apply(
+              BitmapCrop.fromLTWH(
+                  left: xAxis.round(),
+                  top: yAxis.round(),
+                  width: widthPerBlockTemp.round(),
+                  height: heightPerBlockTemp.round()),
+            )
+            .buildHeaded();
 
         final Offset offset = Offset(
             screenSize!.width / 2 - widthPerBlockTemp / 2,
@@ -217,10 +230,11 @@ class JigsawWidgetState extends State<JigsawWidget> {
 
         final ImageBox imageBox = ImageBox(
           image: Image.memory(
-            Uint8List.fromList(ui.encodePng(temp, level: 4)),
+            // Uint8List.fromList(ui.encodePng(temp, level: 4)),
+            cropped,
             fit: BoxFit.contain,
             filterQuality: FilterQuality.medium,
-            // isAntiAlias: true,
+            excludeFromSemantics: true,
           ),
           imagePredominantBgColor: imagePredominantBgColor,
           configs: configs,
@@ -245,11 +259,12 @@ class JigsawWidgetState extends State<JigsawWidget> {
     }
 
     blocksNotifier.value = images.expand((image) => image).toList();
-    blocksNotifier.value.shuffle();
+    // blocksNotifier.value.shuffle();
+    // TODO: hack!
     // ignore: invalid_use_of_visible_for_testing_member, invalid_use_of_protected_member
-    blocksNotifier.notifyListeners();
+    // blocksNotifier.notifyListeners();
     print('GENERATE!');
-    if (mounted) setState(() {});
+    // if (mounted) setState(() {});
     return;
   }
 
@@ -262,7 +277,8 @@ class JigsawWidgetState extends State<JigsawWidget> {
     blocksNotifier = ValueNotifier<List<BlockClass>>(<BlockClass>[]);
     // TODO: hack!
     // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
-    blocksNotifier.notifyListeners();
+    // blocksNotifier.notifyListeners();
+    print('RESET!');
     if (mounted) setState(() {});
   }
 
