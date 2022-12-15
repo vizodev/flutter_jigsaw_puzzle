@@ -215,7 +215,7 @@ Path calculatePoint({
 
     ///Previous original
     // path.lineTo(point.dx, point.dy - radiusPoint / 2);
-// path.lineTo(point.dx, point.dy + radiusPoint / 2);
+    // path.lineTo(point.dx, point.dy + radiusPoint / 2);
     // path.lineTo(fromPoint, point.dy + radiusPoint / 2);
     path.quadraticBezierTo(
       (fromPoint + (3 * point.dx)) / 4,

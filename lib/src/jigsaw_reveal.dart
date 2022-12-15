@@ -236,7 +236,6 @@ class JigsawRevealWidgetState extends State<JigsawRevealWidget> {
             cropped,
             fit: BoxFit.contain,
             filterQuality: FilterQuality.medium,
-            isAntiAlias: false,
             excludeFromSemantics: true,
           ),
           // imagePredominantBgColor: imagePredominantBgColor,
@@ -417,7 +416,7 @@ class JigsawRevealWidgetState extends State<JigsawRevealWidget> {
                 child: Builder(builder: (context) {
                   final Color color =
                       blocksNotifier.value.isEmpty || images.isEmpty
-                          ? (widget.configs.backgroundColor ?? Colors.white)
+                          ? (/*widget.configs.backgroundColor ??*/ Colors.white)
                           : Colors.transparent;
 
                   return Container(
