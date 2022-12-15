@@ -5,13 +5,13 @@
 import 'dart:async';
 import 'dart:math' as math;
 import 'dart:typed_data';
-import 'dart:ui';
 
+import 'package:bitmap/bitmap.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_jigsaw_puzzle/src/jigsaw.dart';
-import 'package:image/image.dart' as ui;
+// import 'package:image/image.dart' as ui;
 
 import '../flutter_jigsaw_puzzle.dart';
 import 'image_box.dart';
@@ -76,7 +76,7 @@ class JigsawRevealWidgetState extends State<JigsawRevealWidget> {
   Axis get direction => widget.configs.carouselDirection;
 
   Size? screenSize;
-  ui.Image? fullImage;
+  Bitmap? fullImage; // ui.Image? fullImage;
   Color? imagePredominantBgColor;
   List<List<BlockClass>> images = <List<BlockClass>>[];
   ValueNotifier<List<BlockClass>> blocksNotifier =
@@ -112,20 +112,23 @@ class JigsawRevealWidgetState extends State<JigsawRevealWidget> {
     super.dispose();
   }
 
-  Future<ui.Image?> _getImageFromWidget() async {
+  // Future<ui.Image?>
+  Future<Bitmap> _getImageFromWidget() async {
     final RenderRepaintBoundary boundary = _repaintKey.currentContext!
         .findRenderObject()! as RenderRepaintBoundary;
 
     screenSize = boundary.size;
-    final img = await boundary.toImage();
-    final byteData = await img.toByteData(format: ImageByteFormat.png);
-    final pngBytes = byteData?.buffer.asUint8List();
+    final Bitmap bitmap = await Bitmap.fromProvider(widget.imageChild.image);
+    return bitmap;
 
-    if (pngBytes == null) {
-      //InvalidImageException();
-      return null;
-    }
-    return ui.decodeImage(List<int>.from(pngBytes));
+    // final img = await boundary.toImage();
+    // final byteData = await img.toByteData(format: ImageByteFormat.png);
+    // final pngBytes = byteData?.buffer.asUint8List();
+    // if (pngBytes == null) {
+    //   //InvalidImageException();
+    //   return null;
+    // }
+    // return ui.decodeImage(List<int>.from(pngBytes));
   }
 
   Future<void> generate() async {
@@ -191,13 +194,22 @@ class JigsawRevealWidgetState extends State<JigsawRevealWidget> {
             (jigsawPosSide.top == 1 ? minSize : 0) +
             (jigsawPosSide.bottom == 1 ? minSize : 0);
 
-        final ui.Image temp = ui.copyCrop(
-          fullImage!,
-          xAxis.round(),
-          yAxis.round(),
-          widthPerBlockTemp.round(),
-          heightPerBlockTemp.round(),
-        );
+        // final ui.Image temp = ui.copyCrop(
+        //   fullImage!,
+        //   xAxis.round(),
+        //   yAxis.round(),
+        //   widthPerBlockTemp.round(),
+        //   heightPerBlockTemp.round(),
+        // );
+        final Uint8List cropped = fullImage!
+            .apply(
+              BitmapCrop.fromLTWH(
+                  left: xAxis.round(),
+                  top: yAxis.round(),
+                  width: widthPerBlockTemp.round(),
+                  height: heightPerBlockTemp.round()),
+            )
+            .buildHeaded();
 
         final Offset offset = Offset(
             screenSize!.width / 2 - widthPerBlockTemp / 2,
@@ -220,10 +232,12 @@ class JigsawRevealWidgetState extends State<JigsawRevealWidget> {
 
         final ImageBox imageBox = ImageBox(
           image: Image.memory(
-            Uint8List.fromList(ui.encodePng(temp, level: 4)),
+            // Uint8List.fromList(ui.encodePng(temp, level: 4)),
+            cropped,
             fit: BoxFit.contain,
             filterQuality: FilterQuality.medium,
-            // isAntiAlias: true,
+            isAntiAlias: false,
+            excludeFromSemantics: true,
           ),
           // imagePredominantBgColor: imagePredominantBgColor,
           configs: configs,
@@ -249,6 +263,7 @@ class JigsawRevealWidgetState extends State<JigsawRevealWidget> {
     }
 
     blocksNotifier.value = images.expand((image) => image).toList();
+    // TODO: hack!
     // ignore: invalid_use_of_visible_for_testing_member, invalid_use_of_protected_member
     // blocksNotifier.notifyListeners();
     print('GENERATE!');
@@ -265,18 +280,14 @@ class JigsawRevealWidgetState extends State<JigsawRevealWidget> {
     // TODO: hack!
     // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
     // blocksNotifier.notifyListeners();
+    print('RESET!');
     if (mounted) setState(() {});
   }
 
   void finishAndReveal() {
-    if (!mounted) {
-      return;
+    if (mounted) {
+      setState(() => _isGameFinished = true);
     }
-
-    setState(() {
-      // images.clear();
-      _isGameFinished = true;
-    });
   }
 
   Future<void> hideLastRevealed() async {
