@@ -299,231 +299,235 @@ class JigsawWidgetState extends State<JigsawWidget> {
   ///
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder(
-        valueListenable: blocksNotifier,
-        builder: (context, List<BlockClass> blocks, child) {
-          final List<BlockClass> blockNotDone =
-              blocks.where((block) => !block.blockIsDone).toList();
-          final List<BlockClass> blockDone =
-              blocks.where((block) => block.blockIsDone).toList();
+    return ClipRect(
+      child: ValueListenableBuilder(
+          valueListenable: blocksNotifier,
+          builder: (context, List<BlockClass> blocks, child) {
+            final List<BlockClass> blockNotDone =
+                blocks.where((block) => !block.blockIsDone).toList();
+            final List<BlockClass> blockDone =
+                blocks.where((block) => block.blockIsDone).toList();
 
-          _isGameFinished =
-              blockDone.length == (configs.xPieces * configs.yPieces) &&
-                  blockNotDone.isEmpty;
+            _isGameFinished =
+                blockDone.length == (configs.xPieces * configs.yPieces) &&
+                    blockNotDone.isEmpty;
 
-          if (_isGameFinished) {
-            finishAndReveal();
-            configs.onFinished?.call();
-          }
+            if (_isGameFinished) {
+              finishAndReveal();
+              configs.onFinished?.call();
+            }
 
-          final double carouselWidth = direction == Axis.horizontal
-              ? MediaQuery.of(context).size.width // null
-              : configs.carouselSize;
-          final double carouselHeight = direction == Axis.horizontal
-              ? configs.carouselSize * .88
-              : (screenSize?.height ?? MediaQuery.of(context).size.height);
+            final double carouselWidth = direction == Axis.horizontal
+                ? MediaQuery.of(context).size.width // null
+                : configs.carouselSize;
+            final double carouselHeight = direction == Axis.horizontal
+                ? configs.carouselSize * .88
+                : (screenSize?.height ?? MediaQuery.of(context).size.height);
 
-          _carouselBlocks = Container(
-            color: JigsawColors.blocksCarouselBg,
-            constraints: BoxConstraints(
-              maxWidth: direction == Axis.horizontal
-                  ? double.infinity
-                  : MediaQuery.of(context).size.width * 0.14,
-              maxHeight: direction == Axis.horizontal
-                  ? MediaQuery.of(context).size.height * 0.19
-                  : double.infinity,
-            ),
-            width: carouselWidth,
-            height: carouselHeight,
-            child: CarouselSlider(
-              carouselController: _carouselController,
-              options: CarouselOptions(
-                aspectRatio: 1,
-                height: carouselHeight,
-                scrollDirection: direction,
-                scrollPhysics: const AlwaysScrollableScrollPhysics(),
-                initialPage: _index ??
-                    (blockNotDone.length >= 3
-                        ? (blockNotDone.length / 2).floor()
-                        : 0),
-                enableInfiniteScroll: false,
-                viewportFraction: 0.2,
-                enlargeCenterPage: true,
-                enlargeStrategy: CenterPageEnlargeStrategy.height,
+            _carouselBlocks = Container(
+              color: JigsawColors.blocksCarouselBg,
+              constraints: BoxConstraints(
+                maxWidth: direction == Axis.horizontal
+                    ? double.infinity
+                    : MediaQuery.of(context).size.width * 0.14,
+                maxHeight: direction == Axis.horizontal
+                    ? MediaQuery.of(context).size.height * 0.19
+                    : double.infinity,
               ),
-              items: blockNotDone.map((block) {
-                final blockSize = block.widget.imageBox.size;
-                return FittedBox(
-                  child: SizedBox.fromSize(
-                    size: blockSize,
-                    child: GestureDetector(
-                      onVerticalDragStart: (details) {
-                        if (configs.carouselDirection == Axis.vertical) return;
-                        setState(() {
-                          _index = blockNotDone.indexOf(block);
-                        });
-                      },
-                      onVerticalDragUpdate: (e) {
-                        if (configs.carouselDirection == Axis.vertical) return;
-                        _pos = block.widget.imageBox.offsetCenter;
-                        if (block.blockIsDone) return;
-                        final blockIndex = blockNotDone.indexOf(block);
-                        if (blockIndex >= 0) {
-                          if (!mounted) return;
-                          handleBlockPointerMove(
-                              e.globalPosition, blockNotDone);
-                        }
-                      },
-                      onHorizontalDragStart: (details) {
-                        if (configs.carouselDirection == Axis.horizontal) {
-                          return;
-                        }
-                        setState(() {
-                          _index = blockNotDone.indexOf(block);
-                        });
-                      },
-                      onHorizontalDragUpdate: (e) {
-                        if (configs.carouselDirection == Axis.horizontal) {
-                          return;
-                        }
-                        _pos = block.widget.imageBox.offsetCenter;
-                        if (block.blockIsDone) return;
-                        final blockIndex = blockNotDone.indexOf(block);
-                        if (blockIndex >= 0) {
-                          if (!mounted) return;
-                          handleBlockPointerMove(
-                              e.globalPosition, blockNotDone);
-                        }
-                      },
-                      child: block.widget,
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-          );
-
-          final _pieceDragger = [
-            if (blockNotDone.isNotEmpty)
-              ...blockNotDone.asMap().entries.map(
-                (map) {
-                  return Positioned(
-                    left: map.value.offset.dx,
-                    top: map.value.offset.dy,
-                    child: Offstage(
-                      offstage: _index != map.key,
-                      child: AnimatedScale(
-                        duration: const Duration(milliseconds: 80),
-                        scale: animatePieceScale ? 1.1 : 1,
-                        child: Listener(
-                          onPointerUp: (event) {},
-                          onPointerDown: (details) {
-                            if (map.value.blockIsDone) {
-                              return;
-                            }
+              width: carouselWidth,
+              height: carouselHeight,
+              child: CarouselSlider(
+                carouselController: _carouselController,
+                options: CarouselOptions(
+                  aspectRatio: 1,
+                  height: carouselHeight,
+                  scrollDirection: direction,
+                  scrollPhysics: const AlwaysScrollableScrollPhysics(),
+                  initialPage: _index ??
+                      (blockNotDone.length >= 3
+                          ? (blockNotDone.length / 2).floor()
+                          : 0),
+                  enableInfiniteScroll: false,
+                  viewportFraction: 0.2,
+                  enlargeCenterPage: true,
+                  enlargeStrategy: CenterPageEnlargeStrategy.height,
+                ),
+                items: blockNotDone.map((block) {
+                  final blockSize = block.widget.imageBox.size;
+                  return FittedBox(
+                    child: SizedBox.fromSize(
+                      size: blockSize,
+                      child: GestureDetector(
+                        onVerticalDragStart: (details) {
+                          if (configs.carouselDirection == Axis.vertical)
+                            return;
+                          setState(() {
+                            _index = blockNotDone.indexOf(block);
+                          });
+                        },
+                        onVerticalDragUpdate: (e) {
+                          if (configs.carouselDirection == Axis.vertical)
+                            return;
+                          _pos = block.widget.imageBox.offsetCenter;
+                          if (block.blockIsDone) return;
+                          final blockIndex = blockNotDone.indexOf(block);
+                          if (blockIndex >= 0) {
                             if (!mounted) return;
+                            handleBlockPointerMove(
+                                e.globalPosition, blockNotDone);
+                          }
+                        },
+                        onHorizontalDragStart: (details) {
+                          if (configs.carouselDirection == Axis.horizontal) {
+                            return;
+                          }
+                          setState(() {
+                            _index = blockNotDone.indexOf(block);
+                          });
+                        },
+                        onHorizontalDragUpdate: (e) {
+                          if (configs.carouselDirection == Axis.horizontal) {
+                            return;
+                          }
+                          _pos = block.widget.imageBox.offsetCenter;
+                          if (block.blockIsDone) return;
+                          final blockIndex = blockNotDone.indexOf(block);
+                          if (blockIndex >= 0) {
+                            if (!mounted) return;
+                            handleBlockPointerMove(
+                                e.globalPosition, blockNotDone);
+                          }
+                        },
+                        child: block.widget,
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            );
 
-                            setState(() {
-                              _pos = details.localPosition;
-                              _index = map.key;
-                            });
-                          },
-                          onPointerMove: (event) async {
-                            if (_index == null) return;
+            final _pieceDragger = [
+              if (blockNotDone.isNotEmpty)
+                ...blockNotDone.asMap().entries.map(
+                  (map) {
+                    return Positioned(
+                      left: map.value.offset.dx,
+                      top: map.value.offset.dy,
+                      child: Offstage(
+                        offstage: _index != map.key,
+                        child: AnimatedScale(
+                          duration: const Duration(milliseconds: 80),
+                          scale: animatePieceScale ? 1.1 : 1,
+                          child: Listener(
+                            onPointerUp: (event) {},
+                            onPointerDown: (details) {
+                              if (map.value.blockIsDone) {
+                                return;
+                              }
+                              if (!mounted) return;
 
-                            await handleBlockPointerMove(
-                                event.position, blockNotDone);
-                          },
-                          child: Container(
-                            child: map.value.widget,
+                              setState(() {
+                                _pos = details.localPosition;
+                                _index = map.key;
+                              });
+                            },
+                            onPointerMove: (event) async {
+                              if (_index == null) return;
+
+                              await handleBlockPointerMove(
+                                  event.position, blockNotDone);
+                            },
+                            child: Container(
+                              child: map.value.widget,
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                )
+            ];
+
+            final _puzzleCanvas = AspectRatio(
+                key: _puzzleAreaKey,
+                aspectRatio: 1,
+                child: Stack(
+                  children: [
+                    // Background faded Image
+                    Positioned.fill(
+                      child: Opacity(
+                        opacity: (blocks.isEmpty || _isGameFinished) ? 1 : .25,
+                        child: widget.imageChild,
+                      ),
+                    ),
+                    Offstage(
+                      offstage: blocks.isEmpty,
+                      child: SizedBox(
+                        child: CustomPaint(
+                          painter: JigsawPainterBackground(
+                            blocks,
+                            configs: configs,
+                          ),
+                          child: Stack(
+                            children: [
+                              if (blockDone.isNotEmpty)
+                                ...blockDone.map(
+                                  (map) {
+                                    return Positioned(
+                                      left: map.offset.dx,
+                                      top: map.offset.dy,
+                                      child: Container(
+                                        child: map.widget,
+                                      ),
+                                    );
+                                  },
+                                ),
+                            ],
                           ),
                         ),
                       ),
                     ),
-                  );
-                },
-              )
-          ];
 
-          final _puzzleCanvas = AspectRatio(
-              key: _puzzleAreaKey,
-              aspectRatio: 1,
-              child: Stack(
+                    /// Background finished Image
+                    if (blocks.isEmpty || _isGameFinished)
+                      Positioned.fill(
+                        child: RepaintBoundary(
+                          key: _repaintKey,
+                          child: widget.imageChild,
+                        ),
+                      ),
+                  ],
+                ));
+
+            if (direction == Axis.horizontal) {
+              return Stack(
                 children: [
-                  // Background faded Image
-                  Positioned.fill(
-                    child: Opacity(
-                      opacity: (blocks.isEmpty || _isGameFinished) ? 1 : .25,
-                      child: widget.imageChild,
-                    ),
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Expanded(child: _puzzleCanvas),
+                      carouselBlocksWidget ?? const SizedBox.shrink(),
+                    ],
                   ),
-                  Offstage(
-                    offstage: blocks.isEmpty,
-                    child: SizedBox(
-                      child: CustomPaint(
-                        painter: JigsawPainterBackground(
-                          blocks,
-                          configs: configs,
-                        ),
-                        child: Stack(
-                          children: [
-                            if (blockDone.isNotEmpty)
-                              ...blockDone.map(
-                                (map) {
-                                  return Positioned(
-                                    left: map.offset.dx,
-                                    top: map.offset.dy,
-                                    child: Container(
-                                      child: map.widget,
-                                    ),
-                                  );
-                                },
-                              ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  /// Background finished Image
-                  if (blocks.isEmpty || _isGameFinished)
-                    Positioned.fill(
-                      child: RepaintBoundary(
-                        key: _repaintKey,
-                        child: widget.imageChild,
-                      ),
-                    ),
+                  ..._pieceDragger,
                 ],
-              ));
-
-          if (direction == Axis.horizontal) {
-            return Stack(
-              children: [
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Expanded(child: _puzzleCanvas),
-                    carouselBlocksWidget ?? const SizedBox.shrink(),
-                  ],
-                ),
-                ..._pieceDragger,
-              ],
-            );
-          } else {
-            return Stack(
-              children: [
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    carouselBlocksWidget ?? const SizedBox.shrink(),
-                    Expanded(child: _puzzleCanvas),
-                  ],
-                ),
-                ..._pieceDragger,
-              ],
-            );
-          }
-        });
+              );
+            } else {
+              return Stack(
+                children: [
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      carouselBlocksWidget ?? const SizedBox.shrink(),
+                      Expanded(child: _puzzleCanvas),
+                    ],
+                  ),
+                  ..._pieceDragger,
+                ],
+              );
+            }
+          }),
+    );
   }
 
   Future<void> handleBlockPointerMove(
@@ -626,6 +630,7 @@ class JigsawPainterBackground extends CustomPainter {
     canvas.drawPath(path, backgroundPaint);
   }
 
+  // IMPORTANT
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }

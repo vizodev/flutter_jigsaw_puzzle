@@ -118,13 +118,17 @@ class JigsawRevealWidgetState extends State<JigsawRevealWidget> {
 
   // Future<ui.Image?>
   Future<Bitmap> _getImageFromWidget() async {
-    final RenderRepaintBoundary boundary = _repaintKey.currentContext!
-        .findRenderObject()! as RenderRepaintBoundary;
+    return Future.microtask(() async {
+      final RenderRepaintBoundary boundary = _repaintKey.currentContext!
+          .findRenderObject()! as RenderRepaintBoundary;
 
-    screenSize = boundary.size;
-    final Bitmap bitmap = await Bitmap.fromProvider(widget.imageChild.image);
-    return bitmap;
-
+      screenSize = boundary.size;
+      // final Bitmap bitmap = await Bitmap.fromProvider(widget.imageChild.image);
+      final imgBytes = await (await boundary.toImage()).toByteData();
+      final Bitmap bitmap = Bitmap.fromHeadless(screenSize!.width.truncate(),
+          screenSize!.height.truncate(), imgBytes!.buffer.asUint8List());
+      return bitmap;
+    });
     // final img = await boundary.toImage();
     // final byteData = await img.toByteData(format: ImageByteFormat.png);
     // final pngBytes = byteData?.buffer.asUint8List();
@@ -327,20 +331,19 @@ class JigsawRevealWidgetState extends State<JigsawRevealWidget> {
   ///
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder(
-        valueListenable: blocksNotifier,
-        builder: (context, List<BlockClass> blocks, child) {
-          final List<BlockClass> blockNotDone =
-              blocks.where((block) => !block.blockIsDone).toList();
-          // final List<BlockClass> blockDone =
-          //     blocks.where((block) => block.blockIsDone).toList();
-          print('puzzle index: $_index');
+    return ClipRect(
+      child: ValueListenableBuilder(
+          valueListenable: blocksNotifier,
+          builder: (context, List<BlockClass> blocks, child) {
+            final List<BlockClass> blockNotDone =
+                blocks.where((block) => !block.blockIsDone).toList();
+            // final List<BlockClass> blockDone =
+            //     blocks.where((block) => block.blockIsDone).toList();
+            print('puzzle index: $_index');
 
-          const padding = EdgeInsets.all(20);
-          final _puzzleCanvas = AspectRatio(
-            aspectRatio: 1,
-            child: Padding(
-              padding: padding,
+            const padding = EdgeInsets.zero; // EdgeInsets.all(20);
+            final _puzzleCanvas = AspectRatio(
+              aspectRatio: 1,
               child: Stack(
                 children: [
                   // Background faded Image
@@ -409,29 +412,29 @@ class JigsawRevealWidgetState extends State<JigsawRevealWidget> {
                     ),
                 ],
               ),
-            ),
-          );
+            );
 
-          return Stack(
-            fit: StackFit.expand,
-            alignment: Alignment.center,
-            children: [
-              Container(
-                child: _puzzleCanvas,
-              ),
-
-              /// To prevent image to appear during loading
-              IgnorePointer(
-                child: Container(
-                  foregroundDecoration: BoxDecoration(
-                      color: blocksNotifier.value.isEmpty || images.isEmpty
-                          ? (widget.configs.backgroundColor ?? Colors.white)
-                          : Colors.transparent),
-                  margin: padding,
+            return Stack(
+              fit: StackFit.expand,
+              alignment: Alignment.center,
+              children: [
+                Container(
+                  child: _puzzleCanvas,
                 ),
-              ),
-            ],
-          );
-        });
+
+                /// To prevent image to appear during loading
+                IgnorePointer(
+                  child: Container(
+                    foregroundDecoration: BoxDecoration(
+                        color: blocksNotifier.value.isEmpty || images.isEmpty
+                            ? (widget.configs.backgroundColor ?? Colors.white)
+                            : Colors.transparent),
+                    margin: padding,
+                  ),
+                ),
+              ],
+            );
+          }),
+    );
   }
 }

@@ -30,8 +30,9 @@ class PuzzlePiecePainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 
   //helpers
-
   void _jigsawRevealPaint(Canvas canvas, Size size) {
+    final strokeFactor = imageBox.configs?.outlinesWidthFactor ?? 2;
+
     // NEW
     if (!isForegroundPainter && imageBox.imagePredominantBgColor != null) {
       final Paint backgroundPaint = Paint()
@@ -53,7 +54,7 @@ class PuzzlePiecePainter extends CustomPainter {
     final border = Paint()
       ..color = Colors.black
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 2;
+      ..strokeWidth = (JigsawDesign.strokePieceWidth / strokeFactor) * 1.3;
 
     canvas.drawPath(
       getPiecePath(
@@ -65,19 +66,7 @@ class PuzzlePiecePainter extends CustomPainter {
           size, imageBox.radiusPoint, imageBox.offsetCenter, imageBox.posSide),
       border,
     );
-
-    // if (imageBox.isDone) {
-    //   final Paint paintDone = Paint()
-    //     ..color = Colors.red
-    //     ..style = PaintingStyle.stroke
-    //     ..strokeWidth = 2;
-    //
-    //   canvas.drawPath(
-    //     getPiecePath(size, imageBox.radiusPoint, imageBox.offsetCenter,
-    //         imageBox.posSide),
-    //     paintDone,
-    //   );
-    // }
+    return;
   }
 
   void _standardJigsawPaint(Canvas canvas, Size size) {
@@ -92,34 +81,33 @@ class PuzzlePiecePainter extends CustomPainter {
           getPiecePath(size, imageBox.radiusPoint, imageBox.offsetCenter,
               imageBox.posSide),
           backgroundPaint);
-
       return;
     }
 
-    final Paint paint = Paint()
+    final Paint border = Paint()
       ..color = imageBox.isDone
           ? JigsawColors.pieceOutlineDone
           : JigsawColors.pieceOutline
       ..style = PaintingStyle.stroke
-      ..strokeWidth = (JigsawDesign.strokePieceWidth / strokeFactor) * 2;
+      ..strokeWidth = (JigsawDesign.strokePieceWidth / strokeFactor);
 
     canvas.drawPath(
       getPiecePath(
           size, imageBox.radiusPoint, imageBox.offsetCenter, imageBox.posSide),
-      paint,
+      border,
     );
 
-    if (imageBox.isDone) {
-      final Paint paintDone = Paint()
-        ..color = JigsawColors.pieceOutlineDone
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = (JigsawDesign.strokeCanvasWidth / strokeFactor);
-
-      canvas.drawPath(
-        getPiecePath(size, imageBox.radiusPoint, imageBox.offsetCenter,
-            imageBox.posSide),
-        paintDone,
-      );
-    }
+    // if (imageBox.isDone) {
+    //   final Paint paintDone = Paint()
+    //     ..color = JigsawColors.pieceOutlineDone
+    //     ..style = PaintingStyle.stroke
+    //     ..strokeWidth = (JigsawDesign.strokeCanvasWidth / strokeFactor);
+    //
+    //   canvas.drawPath(
+    //     getPiecePath(size, imageBox.radiusPoint, imageBox.offsetCenter,
+    //         imageBox.posSide),
+    //     paintDone,
+    //   );
+    // }
   }
 }
