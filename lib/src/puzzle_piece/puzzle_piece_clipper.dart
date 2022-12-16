@@ -18,6 +18,7 @@ class PuzzlePieceClipper extends CustomClipper<Path> {
         size, imageBox.radiusPoint, imageBox.offsetCenter, imageBox.posSide);
   }
 
+  // IMPORTANT
   @override
   bool shouldReclip(covariant CustomClipper<Path> oldClipper) => true;
 }
@@ -177,8 +178,8 @@ Path calculatePoint({
   required bool isTop,
 }) {
   final Path path = Path();
-
   const extremeEdgeFactor = 3.5;
+  // radiusPoint *= 0.55; // NEW
 
   if (axis == Axis.horizontal) {
     path.moveTo(point.dx - radiusPoint / 2, fromPoint);
@@ -215,7 +216,7 @@ Path calculatePoint({
 
     ///Previous original
     // path.lineTo(point.dx, point.dy - radiusPoint / 2);
-// path.lineTo(point.dx, point.dy + radiusPoint / 2);
+    // path.lineTo(point.dx, point.dy + radiusPoint / 2);
     // path.lineTo(fromPoint, point.dy + radiusPoint / 2);
     path.quadraticBezierTo(
       (fromPoint + (3 * point.dx)) / 4,

@@ -5,18 +5,22 @@
 import 'dart:async';
 import 'dart:math' as math;
 import 'dart:typed_data';
-import 'dart:ui';
 
+import 'package:bitmap/bitmap.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter_jigsaw_puzzle/src/extensions.dart';
 import 'package:flutter_jigsaw_puzzle/src/jigsaw.dart';
-import 'package:image/image.dart' as ui;
+import 'package:flutter_jigsaw_puzzle/src/jigsaw_colors.dart';
+// import 'package:image/image.dart' as ui;
 
 import '../flutter_jigsaw_puzzle.dart';
 import 'image_box.dart';
 import 'puzzle_piece/jigsaw_block_painting.dart';
 import 'puzzle_piece/piece_block.dart';
+
+final _random = math.Random().toSuperRandom();
 
 ///
 class JigsawReveal extends StatefulWidget {
@@ -76,7 +80,7 @@ class JigsawRevealWidgetState extends State<JigsawRevealWidget> {
   Axis get direction => widget.configs.carouselDirection;
 
   Size? screenSize;
-  ui.Image? fullImage;
+  Bitmap? fullImage; // ui.Image? fullImage;
   Color? imagePredominantBgColor;
   List<List<BlockClass>> images = <List<BlockClass>>[];
   ValueNotifier<List<BlockClass>> blocksNotifier =
@@ -112,20 +116,27 @@ class JigsawRevealWidgetState extends State<JigsawRevealWidget> {
     super.dispose();
   }
 
-  Future<ui.Image?> _getImageFromWidget() async {
-    final RenderRepaintBoundary boundary = _repaintKey.currentContext!
-        .findRenderObject()! as RenderRepaintBoundary;
+  // Future<ui.Image?>
+  Future<Bitmap> _getImageFromWidget() async {
+    return Future.microtask(() async {
+      final RenderRepaintBoundary boundary = _repaintKey.currentContext!
+          .findRenderObject()! as RenderRepaintBoundary;
 
-    screenSize = boundary.size;
-    final img = await boundary.toImage();
-    final byteData = await img.toByteData(format: ImageByteFormat.png);
-    final pngBytes = byteData?.buffer.asUint8List();
-
-    if (pngBytes == null) {
-      //InvalidImageException();
-      return null;
-    }
-    return ui.decodeImage(List<int>.from(pngBytes));
+      screenSize = boundary.size;
+      // final Bitmap bitmap = await Bitmap.fromProvider(widget.imageChild.image);
+      final imgBytes = await (await boundary.toImage()).toByteData();
+      final Bitmap bitmap = Bitmap.fromHeadless(screenSize!.width.truncate(),
+          screenSize!.height.truncate(), imgBytes!.buffer.asUint8List());
+      return bitmap;
+    });
+    // final img = await boundary.toImage();
+    // final byteData = await img.toByteData(format: ImageByteFormat.png);
+    // final pngBytes = byteData?.buffer.asUint8List();
+    // if (pngBytes == null) {
+    //   //InvalidImageException();
+    //   return null;
+    // }
+    // return ui.decodeImage(List<int>.from(pngBytes));
   }
 
   Future<void> generate() async {
@@ -156,13 +167,12 @@ class JigsawRevealWidgetState extends State<JigsawRevealWidget> {
 
     /// Matrix XY
     for (var y = 0; y < yGrid; y++) {
-      final random = math.Random();
       final tempImages = <BlockClass>[];
       images.add(tempImages);
 
       for (var x = 0; x < xGrid; x++) {
-        final int randomPosRow = random.nextInt(2).isEven ? 1 : -1;
-        final int randomPosCol = random.nextInt(2).isEven ? 1 : -1;
+        final int randomPosRow = _random.nextInt(2).isEven ? 1 : -1;
+        final int randomPosCol = _random.nextInt(2).isEven ? 1 : -1;
         // Offset offsetCenter = Offset(widthPerBlock / 2, heightPerBlock / 2);
 
         final PositionedData jigsawPosSide = PositionedData(
@@ -172,67 +182,76 @@ class JigsawRevealWidgetState extends State<JigsawRevealWidget> {
           right: x == xGrid - 1 ? 0 : randomPosRow,
         );
 
-        final double minSize = math.min(widthPerBlock, heightPerBlock) / 15 * 4;
+        final double jointSize =
+            JigsawDesign.jointSize(widthPerBlock, heightPerBlock);
         double xAxis = widthPerBlock * x;
         double yAxis = heightPerBlock * y;
 
         final Offset offsetCenter = Offset(
-          (widthPerBlock / 2) + (jigsawPosSide.left == 1 ? minSize : 0),
-          (heightPerBlock / 2) + (jigsawPosSide.top == 1 ? minSize : 0),
+          (widthPerBlock / 2) + (jigsawPosSide.left == 1 ? jointSize : 0),
+          (heightPerBlock / 2) + (jigsawPosSide.top == 1 ? jointSize : 0),
         );
 
-        xAxis -= jigsawPosSide.left == 1 ? minSize : 0;
-        yAxis -= jigsawPosSide.top == 1 ? minSize : 0;
+        xAxis -= jigsawPosSide.left == 1 ? jointSize : 0;
+        yAxis -= jigsawPosSide.top == 1 ? jointSize : 0;
 
         final double widthPerBlockTemp = widthPerBlock +
-            (jigsawPosSide.left == 1 ? minSize : 0) +
-            (jigsawPosSide.right == 1 ? minSize : 0);
+            (jigsawPosSide.left == 1 ? jointSize : 0) +
+            (jigsawPosSide.right == 1 ? jointSize : 0);
         final double heightPerBlockTemp = heightPerBlock +
-            (jigsawPosSide.top == 1 ? minSize : 0) +
-            (jigsawPosSide.bottom == 1 ? minSize : 0);
+            (jigsawPosSide.top == 1 ? jointSize : 0) +
+            (jigsawPosSide.bottom == 1 ? jointSize : 0);
 
-        final ui.Image temp = ui.copyCrop(
-          fullImage!,
-          xAxis.round(),
-          yAxis.round(),
-          widthPerBlockTemp.round(),
-          heightPerBlockTemp.round(),
-        );
+        // final ui.Image temp = ui.copyCrop(
+        //   fullImage!,
+        //   xAxis.round(),
+        //   yAxis.round(),
+        //   widthPerBlockTemp.round(),
+        //   heightPerBlockTemp.round(),
+        // );
+        final Uint8List cropped = fullImage!
+            .apply(
+              BitmapCrop.fromLTWH(
+                  left: xAxis.truncate(),
+                  top: yAxis.truncate(),
+                  width: widthPerBlockTemp.floor(),
+                  height: heightPerBlockTemp.truncate()),
+            )
+            .buildHeaded();
 
         final Offset offset = Offset(
             screenSize!.width / 2 - widthPerBlockTemp / 2,
             screenSize!.height / 2 - heightPerBlockTemp / 2);
 
         Color? pieceColor;
-
         if (configs.revealColorsPieces != null &&
             configs.revealColorsPieces!.isNotEmpty) {
-          pieceColor =
-              _pieceColors[(math.Random().nextInt(_pieceColors.length))];
+          pieceColor = _pieceColors[(_random.nextInt(_pieceColors.length))];
 
           if (configs.revealColorsPieces!.length >= (xGrid * yGrid)) {
             _pieceColors.remove(pieceColor);
           }
         } else {
-          pieceColor = Color((math.Random().nextDouble() * 0xFFFFFF).toInt())
-              .withOpacity(1);
+          pieceColor =
+              Color((_random.nextDouble() * 0xFFFFFF).toInt()).withOpacity(1);
         }
 
         final ImageBox imageBox = ImageBox(
           image: Image.memory(
-            Uint8List.fromList(ui.encodePng(temp, level: 4)),
+            // Uint8List.fromList(ui.encodePng(temp, level: 4)),
+            cropped,
             fit: BoxFit.contain,
             filterQuality: FilterQuality.medium,
-            // isAntiAlias: true,
+            excludeFromSemantics: true,
           ),
           // imagePredominantBgColor: imagePredominantBgColor,
+          pieceColor: pieceColor,
           configs: configs,
           isDone: false,
+          size: Size(widthPerBlockTemp, heightPerBlockTemp),
           offsetCenter: offsetCenter,
           posSide: jigsawPosSide,
-          radiusPoint: minSize,
-          size: Size(widthPerBlockTemp, heightPerBlockTemp),
-          pieceColor: pieceColor,
+          radiusPoint: jointSize,
         );
 
         images[y].add(
@@ -249,6 +268,7 @@ class JigsawRevealWidgetState extends State<JigsawRevealWidget> {
     }
 
     blocksNotifier.value = images.expand((image) => image).toList();
+    // TODO: hack!
     // ignore: invalid_use_of_visible_for_testing_member, invalid_use_of_protected_member
     // blocksNotifier.notifyListeners();
     print('GENERATE!');
@@ -265,18 +285,14 @@ class JigsawRevealWidgetState extends State<JigsawRevealWidget> {
     // TODO: hack!
     // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
     // blocksNotifier.notifyListeners();
+    print('RESET!');
     if (mounted) setState(() {});
   }
 
   void finishAndReveal() {
-    if (!mounted) {
-      return;
+    if (mounted) {
+      setState(() => _isGameFinished = true);
     }
-
-    setState(() {
-      // images.clear();
-      _isGameFinished = true;
-    });
   }
 
   Future<void> hideLastRevealed() async {
@@ -315,19 +331,19 @@ class JigsawRevealWidgetState extends State<JigsawRevealWidget> {
   ///
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder(
-        valueListenable: blocksNotifier,
-        builder: (context, List<BlockClass> blocks, child) {
-          final List<BlockClass> blockNotDone =
-              blocks.where((block) => !block.blockIsDone).toList();
-          // final List<BlockClass> blockDone =
-          //     blocks.where((block) => block.blockIsDone).toList();
-          print('puzzle index: $_index');
+    return ClipRect(
+      child: ValueListenableBuilder(
+          valueListenable: blocksNotifier,
+          builder: (context, List<BlockClass> blocks, child) {
+            final List<BlockClass> blockNotDone =
+                blocks.where((block) => !block.blockIsDone).toList();
+            // final List<BlockClass> blockDone =
+            //     blocks.where((block) => block.blockIsDone).toList();
+            print('puzzle index: $_index');
 
-          final _puzzleCanvas = AspectRatio(
-            aspectRatio: 1,
-            child: Padding(
-              padding: const EdgeInsets.all(20),
+            const padding = EdgeInsets.zero; // EdgeInsets.all(20);
+            final _puzzleCanvas = AspectRatio(
+              aspectRatio: 1,
               child: Stack(
                 children: [
                   // Background faded Image
@@ -396,27 +412,29 @@ class JigsawRevealWidgetState extends State<JigsawRevealWidget> {
                     ),
                 ],
               ),
-            ),
-          );
+            );
 
-          return Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Expanded(
-                child: Builder(builder: (context) {
-                  final Color color =
-                      blocksNotifier.value.isEmpty || images.isEmpty
-                          ? (widget.configs.backgroundColor ?? Colors.white)
-                          : Colors.transparent;
+            return Stack(
+              fit: StackFit.expand,
+              alignment: Alignment.center,
+              children: [
+                Container(
+                  child: _puzzleCanvas,
+                ),
 
-                  return Container(
-                    foregroundDecoration: BoxDecoration(color: color),
-                    child: _puzzleCanvas,
-                  );
-                }),
-              ),
-            ],
-          );
-        });
+                /// To prevent image to appear during loading
+                IgnorePointer(
+                  child: Container(
+                    foregroundDecoration: BoxDecoration(
+                        color: blocksNotifier.value.isEmpty || images.isEmpty
+                            ? (widget.configs.backgroundColor ?? Colors.white)
+                            : Colors.transparent),
+                    margin: padding,
+                  ),
+                ),
+              ],
+            );
+          }),
+    );
   }
 }
