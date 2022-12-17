@@ -59,5 +59,5 @@ class JigsawDesign {
   // TODO: [JigsawConfigs]
   /// Indent outside/inside the box piece shape
   static double jointSize(double widthPerBlock, double heightPerBlock) =>
-      math.min(widthPerBlock, heightPerBlock) / 18 * 4;
+      math.min(widthPerBlock, heightPerBlock) / 17 * 4;
 }

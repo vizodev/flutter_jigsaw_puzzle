@@ -178,8 +178,9 @@ Path calculatePoint({
   required bool isTop,
 }) {
   final Path path = Path();
-  const extremeEdgeFactor = 3.5;
-  // radiusPoint *= 0.55; // NEW
+  const extremeEdgeFactor = 20.5; // 3.5;
+  // radiusPoint *= 1.1;
+  // point = Offset(point.dx, point.dy * 0.8);
 
   if (axis == Axis.horizontal) {
     path.moveTo(point.dx - radiusPoint / 2, fromPoint);
