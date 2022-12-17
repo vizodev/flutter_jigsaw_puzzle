@@ -251,7 +251,7 @@ class JigsawRevealWidgetState extends State<JigsawRevealWidget> {
           size: Size(widthPerBlockTemp, heightPerBlockTemp),
           offsetCenter: offsetCenter,
           posSide: jigsawPosSide,
-          radiusPoint: jointSize,
+          jointSize: jointSize,
         );
 
         images[y].add(

@@ -57,7 +57,7 @@ class JigsawDesign {
   static const strokePieceWidth = 4.0;
 
   // TODO: [JigsawConfigs]
-  /// Indent outside/inside the box piece shape
+  /// Indent outside/inside the piece shape
   static double jointSize(double widthPerBlock, double heightPerBlock) =>
       math.min(widthPerBlock, heightPerBlock) / 17 * 4;
 }

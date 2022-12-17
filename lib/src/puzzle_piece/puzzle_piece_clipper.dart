@@ -15,7 +15,7 @@ class PuzzlePieceClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
     return getPiecePath(
-        size, imageBox.radiusPoint, imageBox.offsetCenter, imageBox.posSide);
+        size, imageBox.jointSize, imageBox.offsetCenter, imageBox.posSide);
   }
 
   // IMPORTANT
@@ -25,7 +25,7 @@ class PuzzlePieceClipper extends CustomClipper<Path> {
 
 Path getPiecePath(
   Size size,
-  double radiusPoint,
+  double jointSize,
   Offset offsetCenter,
   PositionedData posSide,
 ) {
@@ -36,42 +36,42 @@ Path getPiecePath(
   Offset bottomLeft = Offset(0, size.height);
   Offset bottomRight = Offset(size.width, size.height);
 
-  topLeft = Offset(posSide.left > 0 ? radiusPoint : 0,
-          (posSide.top > 0) ? radiusPoint : 0) +
+  topLeft = Offset(posSide.left > 0 ? jointSize : 0,
+          (posSide.top > 0) ? jointSize : 0) +
       topLeft;
-  topRight = Offset(posSide.right > 0 ? -radiusPoint : 0,
-          (posSide.top > 0) ? radiusPoint : 0) +
+  topRight = Offset(posSide.right > 0 ? -jointSize : 0,
+          (posSide.top > 0) ? jointSize : 0) +
       topRight;
-  bottomRight = Offset(posSide.right > 0 ? -radiusPoint : 0,
-          (posSide.bottom > 0) ? -radiusPoint : 0) +
+  bottomRight = Offset(posSide.right > 0 ? -jointSize : 0,
+          (posSide.bottom > 0) ? -jointSize : 0) +
       bottomRight;
-  bottomLeft = Offset(posSide.left > 0 ? radiusPoint : 0,
-          (posSide.bottom > 0) ? -radiusPoint : 0) +
+  bottomLeft = Offset(posSide.left > 0 ? jointSize : 0,
+          (posSide.bottom > 0) ? -jointSize : 0) +
       bottomLeft;
 
   final double topMiddle = posSide.top == 0
       ? topRight.dy
       : (posSide.top > 0
-          ? topRight.dy - radiusPoint
-          : topRight.dy + radiusPoint);
+          ? topRight.dy - jointSize
+          : topRight.dy + jointSize);
 
   final double bottomMiddle = posSide.bottom == 0
       ? bottomRight.dy
       : (posSide.bottom > 0
-          ? bottomRight.dy + radiusPoint
-          : bottomRight.dy - radiusPoint);
+          ? bottomRight.dy + jointSize
+          : bottomRight.dy - jointSize);
 
   final double leftMiddle = posSide.left == 0
       ? topLeft.dx
       : (posSide.left > 0
-          ? topLeft.dx - radiusPoint
-          : topLeft.dx + radiusPoint);
+          ? topLeft.dx - jointSize
+          : topLeft.dx + jointSize);
 
   final double rightMiddle = posSide.right == 0
       ? topRight.dx
       : (posSide.right > 0
-          ? topRight.dx + radiusPoint
-          : topRight.dx - radiusPoint);
+          ? topRight.dx + jointSize
+          : topRight.dx - jointSize);
 
   path.moveTo(topLeft.dx, topLeft.dy);
 
@@ -88,7 +88,7 @@ Path getPiecePath(
           axis: Axis.horizontal,
           fromPoint: topLeft.dy,
           point: Offset(offsetCenter.dx, topMiddle),
-          radiusPoint: radiusPoint,
+          jointSize: jointSize,
           isLeft: false,
           isTop: true),
       Offset.zero,
@@ -98,10 +98,10 @@ Path getPiecePath(
 
   if (posSide.right != 0) {
     path.quadraticBezierTo(
-      topRight.dx + (radiusPoint / 8) * (posSide.right > 0 ? -1 : 1),
-      topRight.dy + radiusPoint / 2,
+      topRight.dx + (jointSize / 8) * (posSide.right > 0 ? -1 : 1),
+      topRight.dy + jointSize / 2,
       topRight.dx,
-      offsetCenter.dy - radiusPoint / 2,
+      offsetCenter.dy - jointSize / 2,
     );
 
     path.extendWithPath(
@@ -109,14 +109,14 @@ Path getPiecePath(
             axis: Axis.vertical,
             fromPoint: topRight.dx,
             point: Offset(rightMiddle, offsetCenter.dy),
-            radiusPoint: radiusPoint,
+            jointSize: jointSize,
             isLeft: false,
             isTop: false),
         Offset.zero);
 
     path.quadraticBezierTo(
-      topRight.dx + (radiusPoint / 8) * (posSide.right > 0 ? 1 : -1),
-      bottomRight.dy - radiusPoint / 2,
+      topRight.dx + (jointSize / 8) * (posSide.right > 0 ? 1 : -1),
+      bottomRight.dy - jointSize / 2,
       topRight.dx,
       bottomRight.dy,
     );
@@ -129,7 +129,7 @@ Path getPiecePath(
             axis: Axis.horizontal,
             fromPoint: bottomRight.dy,
             point: Offset(offsetCenter.dx, bottomMiddle),
-            radiusPoint: -radiusPoint,
+            jointSize: -jointSize,
             isLeft: false,
             isTop: false),
         Offset.zero);
@@ -139,24 +139,24 @@ Path getPiecePath(
   if (posSide.left != 0) {
     //  path.moveTo(fromPoint, point.dy - radiusPoint / 2);
     path.quadraticBezierTo(
-        bottomLeft.dx + (radiusPoint / 8) * (posSide.left > 0 ? -1 : 1),
-        bottomLeft.dy - radiusPoint / 2,
+        bottomLeft.dx + (jointSize / 8) * (posSide.left > 0 ? -1 : 1),
+        bottomLeft.dy - jointSize / 2,
         bottomLeft.dx,
-        offsetCenter.dy + radiusPoint / 2);
+        offsetCenter.dy + jointSize / 2);
 
     path.extendWithPath(
         calculatePoint(
             axis: Axis.vertical,
             fromPoint: bottomLeft.dx,
             point: Offset(leftMiddle, offsetCenter.dy),
-            radiusPoint: -radiusPoint,
+            jointSize: -jointSize,
             isLeft: true,
             isTop: false),
         Offset.zero);
 
     path.quadraticBezierTo(
-      bottomLeft.dx + (radiusPoint / 8) * (posSide.left > 0 ? 1 : -1),
-      topLeft.dy + radiusPoint / 2,
+      bottomLeft.dx + (jointSize / 8) * (posSide.left > 0 ? 1 : -1),
+      topLeft.dy + jointSize / 2,
       bottomLeft.dx,
       topLeft.dy,
     );
@@ -173,7 +173,7 @@ Path calculatePoint({
   required Axis axis,
   required double fromPoint,
   required Offset point,
-  required double radiusPoint,
+  required double jointSize,
   required bool isLeft,
   required bool isTop,
 }) {
@@ -183,11 +183,11 @@ Path calculatePoint({
   // point = Offset(point.dx, point.dy * 0.8);
 
   if (axis == Axis.horizontal) {
-    path.moveTo(point.dx - radiusPoint / 2, fromPoint);
+    path.moveTo(point.dx - jointSize / 2, fromPoint);
     path.quadraticBezierTo(
-      point.dx - radiusPoint,
+      point.dx - jointSize,
       (fromPoint + (3 * point.dy)) / 4,
-      point.dx - radiusPoint / 2,
+      point.dx - jointSize / 2,
       point.dy,
     );
     // path.lineTo(point.dx - radiusPoint / 2, point.dy);
@@ -195,25 +195,25 @@ Path calculatePoint({
       point.dx,
       point.dy < fromPoint
           ? (!isTop
-              ? point.dy + radiusPoint / extremeEdgeFactor
-              : point.dy - radiusPoint / extremeEdgeFactor)
+              ? point.dy + jointSize / extremeEdgeFactor
+              : point.dy - jointSize / extremeEdgeFactor)
           : (isTop
-              ? point.dy + radiusPoint / extremeEdgeFactor
-              : point.dy - radiusPoint / extremeEdgeFactor),
-      point.dx + radiusPoint / 2,
+              ? point.dy + jointSize / extremeEdgeFactor
+              : point.dy - jointSize / extremeEdgeFactor),
+      point.dx + jointSize / 2,
       point.dy,
     );
-    path.lineTo(point.dx + radiusPoint / 2, point.dy);
+    path.lineTo(point.dx + jointSize / 2, point.dy);
 
     path.quadraticBezierTo(
-      point.dx + radiusPoint,
+      point.dx + jointSize,
       (fromPoint + (3 * point.dy)) / 4,
-      point.dx + radiusPoint / 2,
+      point.dx + jointSize / 2,
       fromPoint,
     );
     //path.lineTo(point.dx + radiusPoint / 2, fromPoint);
   } else if (axis == Axis.vertical) {
-    path.moveTo(fromPoint, point.dy - radiusPoint / 2);
+    path.moveTo(fromPoint, point.dy - jointSize / 2);
 
     ///Previous original
     // path.lineTo(point.dx, point.dy - radiusPoint / 2);
@@ -221,29 +221,29 @@ Path calculatePoint({
     // path.lineTo(fromPoint, point.dy + radiusPoint / 2);
     path.quadraticBezierTo(
       (fromPoint + (3 * point.dx)) / 4,
-      point.dy - radiusPoint,
+      point.dy - jointSize,
       point.dx,
-      point.dy - radiusPoint / 2,
+      point.dy - jointSize / 2,
     );
 
     path.quadraticBezierTo(
       point.dx < fromPoint
           ? (isLeft
-              ? point.dx + radiusPoint / extremeEdgeFactor
-              : point.dx - radiusPoint / extremeEdgeFactor)
+              ? point.dx + jointSize / extremeEdgeFactor
+              : point.dx - jointSize / extremeEdgeFactor)
           : (!isLeft
-              ? point.dx + radiusPoint / extremeEdgeFactor
-              : point.dx - radiusPoint / extremeEdgeFactor),
+              ? point.dx + jointSize / extremeEdgeFactor
+              : point.dx - jointSize / extremeEdgeFactor),
       point.dy,
       point.dx,
-      point.dy + radiusPoint / 2,
+      point.dy + jointSize / 2,
     );
 
     path.quadraticBezierTo(
       (fromPoint + (3 * point.dx)) / 4,
-      point.dy + radiusPoint,
+      point.dy + jointSize,
       fromPoint,
-      point.dy + radiusPoint / 2,
+      point.dy + jointSize / 2,
     );
   }
 

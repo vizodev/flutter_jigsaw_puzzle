@@ -245,7 +245,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
           size: Size(widthPerBlockTemp, heightPerBlockTemp),
           offsetCenter: offsetCenter,
           posSide: jigsawPosSide,
-          radiusPoint: jointSize,
+          jointSize: jointSize,
         );
 
         images[y].add(
@@ -619,7 +619,7 @@ class JigsawPainterBackground extends CustomPainter {
     blocks.forEach((element) {
       final Path pathTemp = getPiecePath(
         element.widget.imageBox.size,
-        element.widget.imageBox.radiusPoint,
+        element.widget.imageBox.jointSize,
         element.widget.imageBox.offsetCenter,
         element.widget.imageBox.posSide,
       );

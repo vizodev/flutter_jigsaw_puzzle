@@ -39,7 +39,7 @@ class PuzzlePiecePainter extends CustomPainter {
         ..style = PaintingStyle.fill
         ..color = imageBox.imagePredominantBgColor!;
       canvas.drawPath(
-          getPiecePath(size, imageBox.radiusPoint, imageBox.offsetCenter,
+          getPiecePath(size, imageBox.jointSize, imageBox.offsetCenter,
               imageBox.posSide),
           backgroundPaint);
 
@@ -58,12 +58,12 @@ class PuzzlePiecePainter extends CustomPainter {
 
     canvas.drawPath(
       getPiecePath(
-          size, imageBox.radiusPoint, imageBox.offsetCenter, imageBox.posSide),
+          size, imageBox.jointSize, imageBox.offsetCenter, imageBox.posSide),
       paint,
     );
     canvas.drawPath(
       getPiecePath(
-          size, imageBox.radiusPoint, imageBox.offsetCenter, imageBox.posSide),
+          size, imageBox.jointSize, imageBox.offsetCenter, imageBox.posSide),
       border,
     );
     return;
@@ -78,7 +78,7 @@ class PuzzlePiecePainter extends CustomPainter {
         ..style = PaintingStyle.fill
         ..color = imageBox.imagePredominantBgColor!;
       canvas.drawPath(
-          getPiecePath(size, imageBox.radiusPoint, imageBox.offsetCenter,
+          getPiecePath(size, imageBox.jointSize, imageBox.offsetCenter,
               imageBox.posSide),
           backgroundPaint);
       return;
@@ -93,7 +93,7 @@ class PuzzlePiecePainter extends CustomPainter {
 
     canvas.drawPath(
       getPiecePath(
-          size, imageBox.radiusPoint, imageBox.offsetCenter, imageBox.posSide),
+          size, imageBox.jointSize, imageBox.offsetCenter, imageBox.posSide),
       border,
     );
 

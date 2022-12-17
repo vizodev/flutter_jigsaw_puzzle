@@ -13,19 +13,23 @@ class ImageBox {
     required this.isDone,
     required this.offsetCenter,
     required this.posSide,
-    required this.radiusPoint,
+    required this.jointSize,
     required this.size,
     this.pieceColor,
   });
 
   Widget image;
+  Color? pieceColor;
   Color? imagePredominantBgColor;
   bool isDone;
+  Size size;
+
+  /// Indent outside/inside the piece shape
+  double jointSize;
+
+  /// Alignment data
   PositionedData posSide;
   Offset offsetCenter;
-  Size size;
-  double radiusPoint;
-  final Color? pieceColor;
 
   final JigsawConfigs? configs;
 }

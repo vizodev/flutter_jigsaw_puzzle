@@ -25,7 +25,7 @@ class _JigsawBlockPaintingState extends State<JigsawBlockPainting> {
   Widget build(BuildContext context) {
     return ClipPath(
       /// Will extend color painting | Note: [JointSize] automatically adjusts to piece sizes
-      clipper: BoxClipExtender(extend: widget.imageBox.radiusPoint / 3),
+      clipper: BoxClipExtender(extend: widget.imageBox.jointSize / 3),
       child: ClipPath(
         clipper: PuzzlePieceClipper(imageBox: widget.imageBox),
         child: CustomPaint(
