@@ -14,7 +14,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter_jigsaw_puzzle/src/extensions.dart';
 import 'package:flutter_jigsaw_puzzle/src/puzzle_piece/jigsaw_block_painting.dart';
 import 'package:flutter_jigsaw_puzzle/src/puzzle_piece/piece_block.dart';
-// import 'package:image/image.dart' as ui;
+import 'package:image/image.dart' as ui;
 
 import 'error.dart';
 import 'image_box.dart';
@@ -82,7 +82,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
   Axis get direction => widget.configs.carouselDirection;
 
   Size? screenSize;
-  Bitmap? fullImage; // ui.Image? fullImage;
+  ui.Image? fullImage; // Bitmap? fullImage;
   Color? imagePredominantBgColor;
   List<List<BlockClass>> images = <List<BlockClass>>[];
   ValueNotifier<List<BlockClass>> blocksNotifier =
@@ -108,6 +108,8 @@ class JigsawWidgetState extends State<JigsawWidget> {
     if (widget.configs.autoStartPuzzle == true) {
       SchedulerBinding.instance.addPostFrameCallback((_) async {
         await SchedulerBinding.instance.endOfFrame;
+        await SchedulerBinding.instance.endOfFrame;
+        await SchedulerBinding.instance.endOfFrame;
         _autoStartTimer = Timer(
             widget.configs.autoStartDelay ?? const Duration(),
             () =>
@@ -125,21 +127,22 @@ class JigsawWidgetState extends State<JigsawWidget> {
   }
 
   // Future<ui.Image?>
-  Future<Bitmap> _getImageFromWidget() async {
+  Future<ui.Image?> _getImageFromWidget() async {
     final RenderRepaintBoundary boundary = _repaintKey.currentContext!
         .findRenderObject()! as RenderRepaintBoundary;
 
     screenSize = boundary.size;
-    final imgBytes = await (await boundary.toImage()).toByteData();
-    final Bitmap bitmap = Bitmap.fromHeadless(screenSize!.width.round(),
-        screenSize!.height.round(), imgBytes!.buffer.asUint8List());
-    return bitmap;
-
-    // final pngBytes = byteData?.buffer.asUint8List();
-    // if (pngBytes == null) {
-    //   throw InvalidImageException();
-    // }
-    // return ui.decodeImage(List<int>.from(pngBytes));
+    // final imgBytes = await (await boundary.toImage()).toByteData();
+    // final Bitmap bitmap = Bitmap.fromHeadless(screenSize!.width.round(),
+    //     screenSize!.height.round(), imgBytes!.buffer.asUint8List());
+    // return bitmap;
+    final img = await boundary.toImage();
+    final byteData = await img.toByteData(format: ImageByteFormat.png);
+    final pngBytes = byteData?.buffer.asUint8List();
+    if (pngBytes == null) {
+      throw InvalidImageException();
+    }
+    return ui.decodeImage(List<int>.from(pngBytes));
   }
 
   Future<void> generate() async {
@@ -210,22 +213,22 @@ class JigsawWidgetState extends State<JigsawWidget> {
             (jigsawPosSide.top == 1 ? jointSize : 0) +
             (jigsawPosSide.bottom == 1 ? jointSize : 0);
 
-        // final ui.Image temp = ui.copyCrop(
-        //   fullImage!,
-        //   xAxis.round(),
-        //   yAxis.round(),
-        //   widthPerBlockTemp.round(),
-        //   heightPerBlockTemp.round(),
-        // );
-        final Uint8List cropped = fullImage!
-            .apply(
-              BitmapCrop.fromLTWH(
-                  left: xAxis.truncate(),
-                  top: yAxis.truncate(),
-                  width: widthPerBlockTemp.truncate(),
-                  height: heightPerBlockTemp.truncate()),
-            )
-            .buildHeaded();
+        final ui.Image cropped = ui.copyCrop(
+          fullImage!,
+          xAxis.round(),
+          yAxis.round(),
+          widthPerBlockTemp.round(),
+          heightPerBlockTemp.round(),
+        );
+        // final Uint8List cropped = fullImage!
+        //     .apply(
+        //       BitmapCrop.fromLTWH(
+        //           left: xAxis.truncate(),
+        //           top: yAxis.truncate(),
+        //           width: widthPerBlockTemp.truncate(),
+        //           height: heightPerBlockTemp.truncate()),
+        //     )
+        //     .buildHeaded();
 
         final Offset offset = Offset(
             screenSize!.width / 2 - widthPerBlockTemp / 2,
@@ -233,8 +236,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
 
         final ImageBox imageBox = ImageBox(
           image: Image.memory(
-            // Uint8List.fromList(ui.encodePng(temp, level: 4)),
-            cropped,
+            Uint8List.fromList(ui.encodePng(cropped, level: 4)),
             fit: BoxFit.contain,
             filterQuality: FilterQuality.medium,
             excludeFromSemantics: true,
