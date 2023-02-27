@@ -366,54 +366,60 @@ class JigsawWidgetState extends State<JigsawWidget> {
                 ),
                 items: blockNotDone.map((block) {
                   final blockSize = block.widget.imageBox.size;
-                  return FittedBox(
-                    child: SizedBox.fromSize(
-                      size: blockSize,
-                      child: GestureDetector(
-                        onVerticalDragStart: (details) {
-                          if (configs.carouselDirection == Axis.vertical)
-                            return;
-                          setState(() {
-                            _index = blockNotDone.indexOf(block);
-                          });
-                        },
-                        onVerticalDragUpdate: (e) {
-                          if (configs.carouselDirection == Axis.vertical)
-                            return;
-                          _pos = block.widget.imageBox.offsetCenter;
-                          if (block.blockIsDone) return;
-                          final blockIndex = blockNotDone.indexOf(block);
-                          if (blockIndex >= 0) {
-                            if (!mounted) return;
-                            handleBlockPointerMove(
-                                e.globalPosition, blockNotDone);
-                          }
-                        },
-                        onHorizontalDragStart: (details) {
-                          if (configs.carouselDirection == Axis.horizontal) {
-                            return;
-                          }
-                          setState(() {
-                            _index = blockNotDone.indexOf(block);
-                          });
-                        },
-                        onHorizontalDragUpdate: (e) {
-                          if (configs.carouselDirection == Axis.horizontal) {
-                            return;
-                          }
-                          _pos = block.widget.imageBox.offsetCenter;
-                          if (block.blockIsDone) return;
-                          final blockIndex = blockNotDone.indexOf(block);
-                          if (blockIndex >= 0) {
-                            if (!mounted) return;
-                            handleBlockPointerMove(
-                                e.globalPosition, blockNotDone);
-                          }
-                        },
-                        child: block.widget,
+                  return LayoutBuilder(builder: (context, constraints) {
+                    return GestureDetector(
+                      onVerticalDragStart: (details) {
+                        if (configs.carouselDirection == Axis.vertical) {
+                          return;
+                        }
+                        setState(() => _index = blockNotDone.indexOf(block));
+                      },
+                      onVerticalDragUpdate: (e) {
+                        if (configs.carouselDirection == Axis.vertical) {
+                          return;
+                        }
+                        _pos = block.widget.imageBox.offsetCenter;
+                        if (block.blockIsDone) return;
+                        final blockIndex = blockNotDone.indexOf(block);
+                        if (blockIndex >= 0) {
+                          if (!mounted) return;
+                          handleBlockPointerMove(
+                              e.globalPosition, blockNotDone);
+                        }
+                      },
+                      onHorizontalDragStart: (details) {
+                        if (configs.carouselDirection == Axis.horizontal) {
+                          return;
+                        }
+                        setState(() {
+                          _index = blockNotDone.indexOf(block);
+                        });
+                      },
+                      onHorizontalDragUpdate: (e) {
+                        if (configs.carouselDirection == Axis.horizontal) {
+                          return;
+                        }
+                        _pos = block.widget.imageBox.offsetCenter;
+                        if (block.blockIsDone) return;
+                        final blockIndex = blockNotDone.indexOf(block);
+                        if (blockIndex >= 0) {
+                          if (!mounted) return;
+                          handleBlockPointerMove(
+                              e.globalPosition, blockNotDone);
+                        }
+                      },
+                      child: Container(
+                        width: constraints.maxWidth,
+                        color: Colors.white.withOpacity(.001),
+                        child: FittedBox(
+                          child: SizedBox.fromSize(
+                            size: blockSize,
+                            child: block.widget,
+                          ),
+                        ),
                       ),
-                    ),
-                  );
+                    );
+                  });
                 }).toList(),
               ),
             );
