@@ -89,6 +89,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
       ValueNotifier<List<BlockClass>>(<BlockClass>[]);
 
   CarouselController? _carouselController;
+  late GlobalKey _carouselKey;
   Widget? get carouselBlocksWidget => _carouselBlocks;
   Widget? _carouselBlocks;
 
@@ -104,6 +105,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
   void initState() {
     super.initState();
     _carouselController = CarouselController();
+    _carouselKey = GlobalKey();
 
     if (widget.configs.autoStartPuzzle == true) {
       SchedulerBinding.instance.addPostFrameCallback((_) async {
@@ -270,6 +272,10 @@ class JigsawWidgetState extends State<JigsawWidget> {
     // ignore: invalid_use_of_visible_for_testing_member, invalid_use_of_protected_member
     // blocksNotifier.notifyListeners();
     print('GENERATE!');
+    // if (allNotifiers.length >= 3) {
+    //   _index = 3;
+    //   print(blocksNotifier.value.length - 1);
+    // }
     // if (mounted) setState(() {});
     return;
   }
@@ -339,19 +345,23 @@ class JigsawWidgetState extends State<JigsawWidget> {
               width: carouselWidth,
               height: carouselHeight,
               child: CarouselSlider(
+                key: _carouselKey,
                 carouselController: _carouselController,
                 options: CarouselOptions(
                   aspectRatio: 1,
                   height: carouselHeight,
                   scrollDirection: direction,
-                  scrollPhysics: const AlwaysScrollableScrollPhysics(),
-                  initialPage: _index ??
-                      (blockNotDone.length >= 3
-                          ? (blockNotDone.length / 2).floor()
-                          : 0),
-                  enableInfiniteScroll: false,
+                  scrollPhysics: const BouncingScrollPhysics(
+                      decelerationRate: ScrollDecelerationRate.fast),
+                  initialPage: (blockNotDone.length - 1).clamp(0, 999),
+                  // initialPage: _index ??
+                  //     (blockNotDone.length >= 3
+                  //         ? (blockNotDone.length / 2).floor()
+                  //         : 0),
+                  pageSnapping: false,
                   viewportFraction: 0.2,
                   enlargeCenterPage: true,
+                  enableInfiniteScroll: false,
                   enlargeStrategy: CenterPageEnlargeStrategy.height,
                 ),
                 items: blockNotDone.map((block) {
