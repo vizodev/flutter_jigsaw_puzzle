@@ -53,6 +53,8 @@ class _JigsawRevealState extends State<JigsawReveal> {
         fit: widget.imageFit,
         image: widget.image,
         filterQuality: FilterQuality.medium,
+        excludeFromSemantics: true,
+        gaplessPlayback: true,
       ),
     );
   }
@@ -241,7 +243,7 @@ class JigsawRevealWidgetState extends State<JigsawRevealWidget> {
             // Uint8List.fromList(ui.encodePng(temp, level: 4)),
             cropped,
             fit: BoxFit.contain,
-            filterQuality: FilterQuality.medium,
+            filterQuality: FilterQuality.low,
             excludeFromSemantics: true,
           ),
           // imagePredominantBgColor: imagePredominantBgColor,
