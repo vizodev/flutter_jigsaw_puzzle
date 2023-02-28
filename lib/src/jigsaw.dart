@@ -272,10 +272,15 @@ class JigsawWidgetState extends State<JigsawWidget> {
     // ignore: invalid_use_of_visible_for_testing_member, invalid_use_of_protected_member
     // blocksNotifier.notifyListeners();
     print('GENERATE!');
-    // if (allNotifiers.length >= 3) {
-    //   _index = 3;
-    //   print(blocksNotifier.value.length - 1);
-    // }
+    if (allNotifiers.length >= 3) {
+      SchedulerBinding.instance.addPostFrameCallback((_) async {
+        await SchedulerBinding.instance.endOfFrame;
+        await SchedulerBinding.instance.endOfFrame;
+        await SchedulerBinding.instance.endOfFrame;
+        // print('SCROLL!');
+        _carouselController?.jumpToPage(3);
+      });
+    }
     // if (mounted) setState(() {});
     return;
   }
@@ -351,13 +356,12 @@ class JigsawWidgetState extends State<JigsawWidget> {
                   aspectRatio: 1,
                   height: carouselHeight,
                   scrollDirection: direction,
-                  scrollPhysics: const BouncingScrollPhysics(
-                      decelerationRate: ScrollDecelerationRate.fast),
-                  initialPage: (blockNotDone.length - 1).clamp(0, 999),
-                  // initialPage: _index ??
-                  //     (blockNotDone.length >= 3
-                  //         ? (blockNotDone.length / 2).floor()
-                  //         : 0),
+                  scrollPhysics: const NeverScrollableScrollPhysics(),
+                  // initialPage: (blockNotDone.length - 1).clamp(0, 999),
+                  initialPage: _index ??
+                      (blockNotDone.length >= 3
+                          ? (blockNotDone.length / 2).floor()
+                          : 0),
                   pageSnapping: false,
                   viewportFraction: 0.2,
                   enlargeCenterPage: true,
