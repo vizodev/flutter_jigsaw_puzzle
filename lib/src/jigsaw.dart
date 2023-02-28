@@ -477,9 +477,13 @@ class JigsawWidgetState extends State<JigsawWidget> {
                   children: [
                     // Background faded Image
                     Positioned.fill(
-                      child: Opacity(
-                        opacity: (blocks.isEmpty || _isGameFinished) ? 1 : .25,
-                        child: widget.imageChild,
+                      child: Container(
+                        color: Colors.white, // because image has opacity
+                        child: Opacity(
+                          opacity:
+                              (blocks.isEmpty || _isGameFinished) ? 1 : .25,
+                          child: widget.imageChild,
+                        ),
                       ),
                     ),
                     Offstage(
@@ -522,30 +526,44 @@ class JigsawWidgetState extends State<JigsawWidget> {
                 ));
 
             if (direction == Axis.horizontal) {
-              return Stack(
-                children: [
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Expanded(child: _puzzleCanvas),
-                      carouselBlocksWidget ?? const SizedBox.shrink(),
-                    ],
-                  ),
-                  ..._pieceDragger,
-                ],
+              return Container(
+                color: JigsawColors.blocksCarouselBg,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(child: _puzzleCanvas),
+                          carouselBlocksWidget ?? const SizedBox.shrink(),
+                        ],
+                      ),
+                    ),
+                    ..._pieceDragger,
+                  ],
+                ),
               );
             } else {
-              return Stack(
-                children: [
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      carouselBlocksWidget ?? const SizedBox.shrink(),
-                      Expanded(child: _puzzleCanvas),
-                    ],
-                  ),
-                  ..._pieceDragger,
-                ],
+              return Container(
+                color: JigsawColors.blocksCarouselBg,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Center(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          carouselBlocksWidget ?? const SizedBox.shrink(),
+                          Expanded(child: _puzzleCanvas),
+                        ],
+                      ),
+                    ),
+                    ..._pieceDragger,
+                  ],
+                ),
               );
             }
           }),
