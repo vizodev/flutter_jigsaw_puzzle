@@ -474,7 +474,6 @@ class JigsawWidgetState extends State<JigsawWidget> {
                 key: _puzzleAreaKey,
                 aspectRatio: 1,
                 child: Stack(
-                  fit: StackFit.expand,
                   children: [
                     // Background faded Image
                     Positioned.fill(
@@ -517,7 +516,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
 
                     /// Background finished Image
                     if (blocks.isEmpty || _isGameFinished)
-                      Center(
+                      Positioned.fill(
                         child: RepaintBoundary(
                           key: _repaintKey,
                           child: widget.imageChild,
