@@ -251,7 +251,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
           posSide: jigsawPosSide,
           jointSize: jointSize,
         );
-
+        print(Offset(xAxis, yAxis).toString());
         images[y].add(
           BlockClass(
             widget: JigsawBlockPainting(
@@ -584,7 +584,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
     blockNotDone[_index!].offset = offset;
 
     const minSensitivity = 0;
-    const maxSensitivity = 1;
+    const maxSensitivity = 1.5;
     const maxDistanceThreshold = 20;
     const minDistanceThreshold = 1;
 
@@ -600,14 +600,17 @@ class JigsawWidgetState extends State<JigsawWidget> {
         _puzzleAreaKey.currentContext!.findRenderObject() as RenderBox?;
 
     if (renderBox != null) {
+      print("render is null");
       defaultOffsetAdjusted =
           renderBox.localToGlobal(blockNotDone[_index!].offsetDefault);
     }
+    print("$distanceThreshold/ajusted: $defaultOffsetAdjusted");
 
-    if ((blockNotDone[_index!].offset -
-                (defaultOffsetAdjusted ?? blockNotDone[_index!].offsetDefault))
-            .distance <
-        distanceThreshold) {
+    final matchDistanceOffset = (blockNotDone[_index!].offset -
+        (defaultOffsetAdjusted ?? blockNotDone[_index!].offsetDefault));
+    print(
+        "distance offset: $matchDistanceOffset/distance ${matchDistanceOffset.distance}");
+    if (matchDistanceOffset.distance < distanceThreshold) {
       setState(() {
         animatePieceScale = true;
       });
