@@ -239,7 +239,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
 
         final ImageBox imageBox = ImageBox(
           image: Image.memory(
-            Uint8List.fromList(ui.encodePng(cropped, level: 4)),
+            Uint8List.fromList(ui.encodePng(cropped, level: 2)),
             fit: BoxFit.contain, // BoxFit.contain
             filterQuality: FilterQuality.medium,
             excludeFromSemantics: true,
@@ -475,60 +475,69 @@ class JigsawWidgetState extends State<JigsawWidget> {
                 )
             ];
 
-            final _puzzleCanvas = AspectRatio(
-                key: _puzzleAreaKey,
-                aspectRatio: 1,
-                child: Stack(
-                  children: [
-                    // Background faded Image
-                    Positioned.fill(
-                      child: Container(
-                        color: Colors.white, // because image has opacity
-                        child: Opacity(
-                          opacity:
-                              (blocks.isEmpty || _isGameFinished) ? 1 : .25,
-                          child: widget.imageChild,
-                        ),
-                      ),
-                    ),
-                    Offstage(
-                      offstage: blocks.isEmpty,
-                      child: SizedBox(
-                        child: CustomPaint(
-                          painter: JigsawPainterBackground(
-                            blocks,
-                            configs: configs,
-                          ),
-                          child: Stack(
-                            children: [
-                              if (blockDone.isNotEmpty)
-                                ...blockDone.map(
-                                  (map) {
-                                    return Positioned(
-                                      left: map.offset.dx,
-                                      top: map.offset.dy,
-                                      child: Container(
-                                        child: map.widget,
-                                      ),
-                                    );
-                                  },
-                                ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    /// Background finished Image
-                    if (blocks.isEmpty || _isGameFinished)
+            final _puzzleCanvas = Builder(
+              builder: (context) => RepaintBoundary(
+                key: _repaintKey,
+                child: AspectRatio(
+                  key: _puzzleAreaKey,
+                  aspectRatio: 1,
+                  child: Stack(
+                    children: [
+                      // Background faded Image
                       Positioned.fill(
-                        child: RepaintBoundary(
-                          key: _repaintKey,
-                          child: widget.imageChild,
+                        child: Container(
+                          color: Colors.white, // because image has opacity
+                          child: Opacity(
+                            opacity:
+                                (blocks.isEmpty || _isGameFinished) ? 1 : .25,
+                            child: widget.imageChild,
+                          ),
                         ),
                       ),
-                  ],
-                ));
+                      Offstage(
+                        offstage: blocks.isEmpty,
+                        child: SizedBox(
+                          child: CustomPaint(
+                            painter: JigsawPainterBackground(
+                              blocks,
+                              configs: configs,
+                            ),
+                            child: Stack(
+                              children: [
+                                if (blockDone.isNotEmpty)
+                                  ...blockDone.map(
+                                    (map) {
+                                      return Positioned(
+                                        left: map.offset.dx,
+                                        top: map.offset.dy,
+                                        child: Container(
+                                          child: map.widget,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      /// Background finished Image
+                      if (blocks.isEmpty || _isGameFinished)
+                        Positioned.fill(
+                          child: AspectRatio(
+                            aspectRatio: 1,
+                            child: RepaintBoundary(
+                              // key: _repaintKey,
+                              child: widget.imageChild,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            );
 
             if (direction == Axis.horizontal) {
               return Container(
