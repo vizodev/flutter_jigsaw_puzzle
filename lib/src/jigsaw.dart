@@ -2,6 +2,7 @@
 // ignore_for_file: public_member_api_docs, always_put_control_body_on_new_line
 
 import 'dart:async';
+import 'dart:developer';
 import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:ui';
@@ -251,7 +252,9 @@ class JigsawWidgetState extends State<JigsawWidget> {
           posSide: jigsawPosSide,
           jointSize: jointSize,
         );
-        print(Offset(xAxis, yAxis).toString());
+
+        log(offset.toString() + "/" + offsetCenter.toString());
+        log(Offset(xAxis, yAxis).toString() + "\n\n");
         images[y].add(
           BlockClass(
             widget: JigsawBlockPainting(
@@ -259,6 +262,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
               imageBox: imageBox,
             ),
             offset: offset,
+            offsetCenter: offsetCenter,
             offsetDefault: Offset(xAxis, yAxis),
           ),
         );
@@ -372,13 +376,13 @@ class JigsawWidgetState extends State<JigsawWidget> {
                   final blockSize = block.widget.imageBox.size;
                   return LayoutBuilder(builder: (context, constraints) {
                     return GestureDetector(
-                      onVerticalDragStart: (details) {
+                      onVerticalDragStart: (event) {
                         if (configs.carouselDirection == Axis.vertical) {
                           return;
                         }
                         setState(() => _index = blockNotDone.indexOf(block));
                       },
-                      onVerticalDragUpdate: (e) {
+                      onVerticalDragUpdate: (event) {
                         if (configs.carouselDirection == Axis.vertical) {
                           return;
                         }
@@ -388,10 +392,10 @@ class JigsawWidgetState extends State<JigsawWidget> {
                         if (blockIndex >= 0) {
                           if (!mounted) return;
                           handleBlockPointerMove(
-                              e.globalPosition, blockNotDone);
+                              event.globalPosition, blockNotDone);
                         }
                       },
-                      onHorizontalDragStart: (details) {
+                      onHorizontalDragStart: (event) {
                         if (configs.carouselDirection == Axis.horizontal) {
                           return;
                         }
@@ -399,7 +403,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
                           _index = blockNotDone.indexOf(block);
                         });
                       },
-                      onHorizontalDragUpdate: (e) {
+                      onHorizontalDragUpdate: (event) {
                         if (configs.carouselDirection == Axis.horizontal) {
                           return;
                         }
@@ -409,7 +413,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
                         if (blockIndex >= 0) {
                           if (!mounted) return;
                           handleBlockPointerMove(
-                              e.globalPosition, blockNotDone);
+                              event.globalPosition, blockNotDone);
                         }
                       },
                       child: Container(
@@ -442,14 +446,15 @@ class JigsawWidgetState extends State<JigsawWidget> {
                           scale: animatePieceScale ? 1.1 : 1,
                           child: Listener(
                             onPointerUp: (event) {},
-                            onPointerDown: (details) {
+                            onPointerDown: (event) {
                               if (map.value.blockIsDone) {
                                 return;
                               }
                               if (!mounted) return;
 
                               setState(() {
-                                _pos = details.localPosition;
+                                // _pos = event.localPosition;
+                                _pos = map.value.offsetCenter; // using piece offsetCenter because on pointerMove we are using GlobalPosition
                                 _index = map.key;
                               });
                             },
@@ -581,7 +586,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
     }
 
     final Offset offset = position - _pos;
-    blockNotDone[_index!].offset = offset;
+    blockNotDone[_index!].offset = Offset(offset.dx - 50, offset.dy);
 
     const minSensitivity = 0;
     const maxSensitivity = 1.5;
@@ -606,8 +611,8 @@ class JigsawWidgetState extends State<JigsawWidget> {
     }
     print("$distanceThreshold/ajusted: $defaultOffsetAdjusted");
 
-    final matchDistanceOffset = (blockNotDone[_index!].offset -
-        (defaultOffsetAdjusted ?? blockNotDone[_index!].offsetDefault));
+    final matchDistanceOffset =
+        Offset(offset.dx + 0, offset.dy) - (defaultOffsetAdjusted ?? blockNotDone[_index!].offsetDefault);
     print(
         "distance offset: $matchDistanceOffset/distance ${matchDistanceOffset.distance}");
     if (matchDistanceOffset.distance < distanceThreshold) {

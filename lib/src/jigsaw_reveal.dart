@@ -124,6 +124,7 @@ class JigsawRevealWidgetState extends State<JigsawRevealWidget> {
       final RenderRepaintBoundary boundary = _repaintKey.currentContext!
           .findRenderObject()! as RenderRepaintBoundary;
 
+      // todo: Talkie will send size constraints
       screenSize = boundary.size;
       // final Bitmap bitmap = await Bitmap.fromProvider(widget.imageChild.image);
       final imgBytes = await (await boundary.toImage()).toByteData();
@@ -263,6 +264,7 @@ class JigsawRevealWidgetState extends State<JigsawRevealWidget> {
               imageBox: imageBox,
             ),
             offset: offset,
+            offsetCenter: offsetCenter,
             offsetDefault: Offset(xAxis, yAxis),
           ),
         );

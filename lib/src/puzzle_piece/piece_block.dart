@@ -8,11 +8,13 @@ import 'jigsaw_block_painting.dart';
 class BlockClass {
   BlockClass({
     required this.offset,
+    required this.offsetCenter,
     required this.offsetDefault,
     required this.widget,
   });
 
   Offset offset;
+  Offset offsetCenter;
   Offset offsetDefault;
 
   /// [JigsawBlockPainting]
