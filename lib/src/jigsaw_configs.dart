@@ -9,6 +9,10 @@ class JigsawConfigs {
     //this.gridSize = 3,
     this.yPieces = 2,
     this.xPieces = 2,
+    this.useMobileXVariation = false,
+    required this.screenIsTablet,
+    this.screenAspectRatio,
+    //
     this.autoStartPuzzle = false,
     this.onAutoStarted,
     this.onBlockFitted,
@@ -23,13 +27,24 @@ class JigsawConfigs {
     this.snapSensitivity = .5,
     this.revealColorsPieces,
     this.backgroundColor,
-  });
+  }) : assert(
+            (useMobileXVariation || !screenIsTablet)
+                ? screenAspectRatio != null
+                : true,
+            "When [useMobileXVariation] is enabled, the system will also need the aspect ratio");
 
   ///Number of horizontal pieces
   final int xPieces;
 
   ///Number of vertical pieces
   final int yPieces;
+
+  /// Because piece matching are having problems/variations when on mobile screen.
+  /// This apply size variation to fix based on screen aspect ratio
+  final bool useMobileXVariation;
+
+  final bool screenIsTablet;
+  final Offset? screenAspectRatio;
 
   ///Colors used in [JigsawReveal], if total pieces ([xGrid] * [yGrid]) < Colors , then pieces will repeat colors
   ///If [revealColorsPiece] is null, widget will provide Random Colors

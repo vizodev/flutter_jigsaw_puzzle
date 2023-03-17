@@ -25,6 +25,22 @@ import 'puzzle_piece/puzzle_piece_clipper.dart';
 
 final _random = math.Random().toSuperRandom();
 
+class SizeCalculator {
+  const SizeCalculator._();
+
+  /// Normalize a value based on the screen aspect ratio such that it approaches zero for an
+  /// aspect ratio of 16/9 and increases as the aspect ratio approaches 21/9
+  static double normalizeMobileX(
+      {double value = 50, required Offset aspectRatio}) {
+    const double multiplier = 40;
+    final ratio = aspectRatio.dx / aspectRatio.dy;
+    final factor = ((value / aspectRatio.dx) * (ratio - (16 / 9))) * multiplier;
+
+    final normalized = factor * value;
+    return normalized;
+  }
+}
+
 ///
 class JigsawPuzzle extends StatefulWidget {
   const JigsawPuzzle({
@@ -595,7 +611,14 @@ class JigsawWidgetState extends State<JigsawWidget> {
     }
 
     final Offset offset = position - _pos;
-    blockNotDone[_index!].offset = Offset(offset.dx - 50, offset.dy);
+    final xNormalized = !configs.screenIsTablet && configs.useMobileXVariation
+        ? SizeCalculator.normalizeMobileX(
+            aspectRatio: configs.screenAspectRatio!)
+        : 0;
+    print(xNormalized);
+    blockNotDone[_index!].offset = configs.screenIsTablet
+        ? offset
+        : Offset(offset.dx - xNormalized, offset.dy);
 
     const minSensitivity = 0;
     const maxSensitivity = 1.5;
@@ -620,8 +643,8 @@ class JigsawWidgetState extends State<JigsawWidget> {
     }
     print("$distanceThreshold/ajusted: $defaultOffsetAdjusted");
 
-    final matchDistanceOffset =
-        Offset(offset.dx + 0, offset.dy) - (defaultOffsetAdjusted ?? blockNotDone[_index!].offsetDefault);
+    final matchDistanceOffset = Offset(offset.dx + 0, offset.dy) -
+        (defaultOffsetAdjusted ?? blockNotDone[_index!].offsetDefault);
     print(
         "distance offset: $matchDistanceOffset/distance ${matchDistanceOffset.distance}");
     if (matchDistanceOffset.distance < distanceThreshold) {
