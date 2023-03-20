@@ -12,6 +12,7 @@ class JigsawConfigs {
     this.useMobileXVariation = false,
     required this.screenIsTablet,
     this.screenAspectRatio,
+    this.screenViewPadding,
     //
     this.autoStartPuzzle = false,
     this.onAutoStarted,
@@ -42,6 +43,9 @@ class JigsawConfigs {
   /// Because piece matching are having problems/variations when on mobile screen.
   /// This apply size variation to fix based on screen aspect ratio
   final bool useMobileXVariation;
+
+  // todo
+  final EdgeInsets? screenViewPadding;
 
   final bool screenIsTablet;
   final Offset? screenAspectRatio;

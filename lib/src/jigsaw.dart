@@ -39,6 +39,19 @@ class SizeCalculator {
     final normalized = factor * value;
     return normalized;
   }
+
+  static double getNotchSizeX(BuildContext context, JigsawConfigs configs) {
+    try {
+      final view =
+          configs.screenViewPadding ?? MediaQuery.of(context).viewPadding;
+      log(view.toString());
+      final result = math.max(view.left, view.right);
+      return result;
+    } catch (e) {
+      log(e.toString());
+      return 0;
+    }
+  }
 }
 
 ///
@@ -113,7 +126,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
   bool get isGameFinished => _isGameFinished;
   bool _isGameFinished = false;
 
-  Offset _pos = Offset.zero;
+  Offset _posPointer = Offset.zero;
   int? _index;
 
   Timer? _autoStartTimer;
@@ -402,7 +415,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
                         if (configs.carouselDirection == Axis.vertical) {
                           return;
                         }
-                        _pos = block.widget.imageBox.offsetCenter;
+                        _posPointer = block.widget.imageBox.offsetCenter;
                         if (block.blockIsDone) return;
                         final blockIndex = blockNotDone.indexOf(block);
                         if (blockIndex >= 0) {
@@ -423,7 +436,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
                         if (configs.carouselDirection == Axis.horizontal) {
                           return;
                         }
-                        _pos = block.widget.imageBox.offsetCenter;
+                        _posPointer = block.widget.imageBox.offsetCenter;
                         if (block.blockIsDone) return;
                         final blockIndex = blockNotDone.indexOf(block);
                         if (blockIndex >= 0) {
@@ -470,7 +483,8 @@ class JigsawWidgetState extends State<JigsawWidget> {
 
                               setState(() {
                                 // _pos = event.localPosition;
-                                _pos = map.value.offsetCenter; // using piece offsetCenter because on pointerMove we are using GlobalPosition
+                                _posPointer = map.value
+                                    .offsetCenter; // using piece offsetCenter because on pointerMove we are using GlobalPosition
                                 _index = map.key;
                               });
                             },
@@ -610,11 +624,12 @@ class JigsawWidgetState extends State<JigsawWidget> {
       return;
     }
 
-    final Offset offset = position - _pos;
-    final xNormalized = !configs.screenIsTablet && configs.useMobileXVariation
-        ? SizeCalculator.normalizeMobileX(
-            aspectRatio: configs.screenAspectRatio!)
-        : 0;
+    final Offset offset = position - _posPointer;
+    // final xNormalized = !configs.screenIsTablet && configs.useMobileXVariation
+    //     ? SizeCalculator.normalizeMobileX(
+    //         aspectRatio: configs.screenAspectRatio!)
+    //     : 0;
+    final xNormalized = SizeCalculator.getNotchSizeX(context, configs);
     print(xNormalized);
     blockNotDone[_index!].offset = configs.screenIsTablet
         ? offset
@@ -643,8 +658,8 @@ class JigsawWidgetState extends State<JigsawWidget> {
     }
     print("$distanceThreshold/ajusted: $defaultOffsetAdjusted");
 
-    final matchDistanceOffset = Offset(offset.dx + 0, offset.dy) -
-        (defaultOffsetAdjusted ?? blockNotDone[_index!].offsetDefault);
+    final matchDistanceOffset =
+        offset - (defaultOffsetAdjusted ?? blockNotDone[_index!].offsetDefault);
     print(
         "distance offset: $matchDistanceOffset/distance ${matchDistanceOffset.distance}");
     if (matchDistanceOffset.distance < distanceThreshold) {
