@@ -14,6 +14,6 @@ dependencies:
       ref: master # branch name
   carousel_slider: 4.1.1
   flutter: { sdk: flutter }
-  image: ^3.2.2
+  image: ^4.0.15
   palette_generator: ^0.3.3+2
   uuid: ^3.0.6

@@ -164,17 +164,21 @@ class JigsawWidgetState extends State<JigsawWidget> {
         .findRenderObject()! as RenderRepaintBoundary;
 
     screenSize = boundary.size;
+    final img = await boundary.toImage();
+    if (configs.screenAspectRatio != null) {
+      log('screen aspect ration: ${configs.screenAspectRatio}/ '
+          'puzzle screen size: ${screenSize.toString()}/img size: ${img.width}/${img.height}');
+    }
     // final imgBytes = await (await boundary.toImage()).toByteData();
     // final Bitmap bitmap = Bitmap.fromHeadless(screenSize!.width.round(),
     //     screenSize!.height.round(), imgBytes!.buffer.asUint8List());
     // return bitmap;
-    final img = await boundary.toImage();
     final byteData = await img.toByteData(format: ImageByteFormat.png);
     final pngBytes = byteData?.buffer.asUint8List();
     if (pngBytes == null) {
       throw InvalidImageException();
     }
-    return ui.decodeImage(List<int>.from(pngBytes));
+    return ui.decodeImage(pngBytes);
   }
 
   Future<void> generate() async {
@@ -247,10 +251,10 @@ class JigsawWidgetState extends State<JigsawWidget> {
 
         final ui.Image cropped = ui.copyCrop(
           fullImage!,
-          xAxis.round(),
-          yAxis.round(),
-          widthPerBlockTemp.round(),
-          heightPerBlockTemp.round(),
+          x: xAxis.round(),
+          y: yAxis.round(),
+          width: widthPerBlockTemp.round(),
+          height: heightPerBlockTemp.round(),
         );
         // final Uint8List cropped = fullImage!
         //     .apply(

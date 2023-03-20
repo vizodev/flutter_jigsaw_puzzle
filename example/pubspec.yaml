@@ -1,6 +1,6 @@
 name: jigsaw_puzzle_example
 description: Jigsaw Puzzle lib example.
-version: 0.1.0
+version: 0.1.1
 homepage: https://github.com/o-compilador/flutter_jigsaw_puzzle
 publish_to: "none"
 
