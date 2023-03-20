@@ -18,18 +18,18 @@ class ImageBox {
     this.pieceColor,
   });
 
-  Widget image;
-  Color? pieceColor;
-  Color? imagePredominantBgColor;
+  final Widget? image;
+  final Size size;
+  final Color? pieceColor;
+  final Color? imagePredominantBgColor;
   bool isDone;
-  Size size;
 
   /// Indent outside/inside the piece shape
-  double jointSize;
+  final double jointSize;
 
   /// Alignment data
-  PositionedData posSide;
-  Offset offsetCenter;
+  final PositionedData posSide;
+  final Offset offsetCenter;
 
   final JigsawConfigs? configs;
 }

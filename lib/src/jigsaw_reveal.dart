@@ -3,6 +3,7 @@
 // ignore_for_file: public_member_api_docs
 
 import 'dart:async';
+import 'dart:developer';
 import 'dart:math' as math;
 import 'dart:typed_data';
 
@@ -82,7 +83,7 @@ class JigsawRevealWidgetState extends State<JigsawRevealWidget> {
   Axis get direction => widget.configs.carouselDirection;
 
   Size? screenSize;
-  Bitmap? fullImage; // ui.Image? fullImage;
+  // Bitmap? fullImage; // ui.Image? fullImage;
   Color? imagePredominantBgColor;
   List<List<BlockClass>> images = <List<BlockClass>>[];
   ValueNotifier<List<BlockClass>> blocksNotifier =
@@ -99,11 +100,12 @@ class JigsawRevealWidgetState extends State<JigsawRevealWidget> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       while (!mounted) {
-        await Future<void>.delayed(const Duration(milliseconds: 1));
+        await Future<void>.delayed(const Duration(microseconds: 100));
       }
 
-      await SchedulerBinding.instance.endOfFrame;
-      SchedulerBinding.instance.addPostFrameCallback((_) => generate());
+      // await SchedulerBinding.instance.endOfFrame;
+      // SchedulerBinding.instance.addPostFrameCallback((_) => generate());
+      generate();
     });
   }
 
@@ -130,6 +132,8 @@ class JigsawRevealWidgetState extends State<JigsawRevealWidget> {
       final imgBytes = await (await boundary.toImage()).toByteData();
       final Bitmap bitmap = Bitmap.fromHeadless(screenSize!.width.truncate(),
           screenSize!.height.truncate(), imgBytes!.buffer.asUint8List());
+      log('screen aspect ration: ${configs.screenAspectRatio}/ '
+          'puzzle screen size: ${screenSize.toString()}/img size: ${bitmap.width}/${bitmap.height}');
       return bitmap;
     });
     // final img = await boundary.toImage();
@@ -151,22 +155,24 @@ class JigsawRevealWidgetState extends State<JigsawRevealWidget> {
       return;
     }
 
-    final _pieceColors =
-        List<Color>.from(configs.revealColorsPieces ?? <Color>[]);
-
     images = [[]];
-
-    fullImage ??= await _getImageFromWidget();
-    if (!mounted) {
+    // fullImage ??= await _getImageFromWidget();
+    int counter = 0;
+    while (screenSize == null && counter <= 50) {
+      await Future<void>.delayed(const Duration(microseconds: 100));
+      counter++;
+    }
+    if (!mounted || screenSize == null) {
       return;
     }
+    print("counter: $counter");
 
-    // final int xGrid = configs.gridSize;
-    // final int yGrid = configs.gridSize;
     final int xGrid = configs.xPieces;
     final int yGrid = configs.yPieces;
     final double widthPerBlock = screenSize!.width / xGrid;
     final double heightPerBlock = screenSize!.height / yGrid;
+    final _pieceColors =
+        List<Color>.from(configs.revealColorsPieces ?? <Color>[]);
 
     /// Matrix XY
     for (var y = 0; y < yGrid; y++) {
@@ -212,15 +218,15 @@ class JigsawRevealWidgetState extends State<JigsawRevealWidget> {
         //   widthPerBlockTemp.round(),
         //   heightPerBlockTemp.round(),
         // );
-        final Uint8List cropped = fullImage!
-            .apply(
-              BitmapCrop.fromLTWH(
-                  left: xAxis.truncate(),
-                  top: yAxis.truncate(),
-                  width: widthPerBlockTemp.floor(),
-                  height: heightPerBlockTemp.truncate()),
-            )
-            .buildHeaded();
+        // final Uint8List cropped = fullImage!
+        //     .apply(
+        //       BitmapCrop.fromLTWH(
+        //           left: xAxis.truncate(),
+        //           top: yAxis.truncate(),
+        //           width: widthPerBlockTemp.floor(),
+        //           height: heightPerBlockTemp.truncate()),
+        //     )
+        //     .buildHeaded();
 
         final Offset offset = Offset(
             screenSize!.width / 2 - widthPerBlockTemp / 2,
@@ -240,18 +246,20 @@ class JigsawRevealWidgetState extends State<JigsawRevealWidget> {
         }
 
         final ImageBox imageBox = ImageBox(
-          image: Image.memory(
-            // Uint8List.fromList(ui.encodePng(temp, level: 4)),
-            cropped,
-            fit: BoxFit.contain,
-            filterQuality: FilterQuality.low,
-            excludeFromSemantics: true,
-          ),
+          // image: Image.memory(
+          //   // Uint8List.fromList(ui.encodePng(temp, level: 4)),
+          //   cropped,
+          //   fit: BoxFit.contain,
+          //   filterQuality: FilterQuality.low,
+          //   excludeFromSemantics: true,
+          // ),
+          image: null,
+          size: Size(widthPerBlockTemp.floorToDouble(),
+              heightPerBlockTemp.truncateToDouble()),
           // imagePredominantBgColor: imagePredominantBgColor,
           pieceColor: pieceColor,
           configs: configs,
           isDone: false,
-          size: Size(widthPerBlockTemp, heightPerBlockTemp),
           offsetCenter: offsetCenter,
           posSide: jigsawPosSide,
           jointSize: jointSize,
@@ -409,10 +417,14 @@ class JigsawRevealWidgetState extends State<JigsawRevealWidget> {
                   /// Background finished Image
                   if (blocks.isEmpty || _isGameFinished)
                     Positioned.fill(
-                      child: RepaintBoundary(
-                        key: _repaintKey,
-                        child: widget.imageChild,
-                      ),
+                      child: LayoutBuilder(builder: (context, constraints) {
+                        screenSize = constraints.biggest;
+                        log(constraints.biggest.toString());
+                        return RepaintBoundary(
+                          key: _repaintKey,
+                          child: widget.imageChild,
+                        );
+                      }),
                     ),
                 ],
               ),

@@ -8,10 +8,10 @@ import 'puzzle_piece_painter.dart';
 
 class JigsawBlockPainting extends StatefulWidget {
   const JigsawBlockPainting({
-    Key? key,
+    super.key,
     required this.imageBox,
     required this.isJigsawReveal,
-  }) : super(key: key);
+  });
 
   final ImageBox imageBox;
   final bool isJigsawReveal;
@@ -38,7 +38,8 @@ class _JigsawBlockPaintingState extends State<JigsawBlockPainting> {
             isJigsawReveal: widget.isJigsawReveal,
             imageBox: widget.imageBox,
           ),
-          child: widget.imageBox.image,
+          child: widget.imageBox.image ??
+              SizedBox.fromSize(size: widget.imageBox.size),
         ),
       ),
     );
