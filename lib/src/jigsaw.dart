@@ -85,6 +85,7 @@ class _JigsawPuzzleState extends State<JigsawPuzzle> {
         fit: widget.imageFit,
         image: widget.image,
         filterQuality: FilterQuality.medium,
+        excludeFromSemantics: true,
       ),
     );
   }
@@ -148,6 +149,12 @@ class JigsawWidgetState extends State<JigsawWidget> {
                 tryAutoStartPuzzle(widget.puzzleKey, configs: widget.configs));
       });
     }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    precacheImage(widget.imageChild.image, context);
   }
 
   @override
