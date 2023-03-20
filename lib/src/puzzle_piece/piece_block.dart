@@ -13,12 +13,12 @@ class BlockClass {
     required this.widget,
   });
 
-  Offset offset;
-  Offset offsetCenter;
-  Offset offsetDefault;
+  /*final*/ Offset offset;
+  final Offset offsetCenter;
+  final Offset offsetDefault;
 
   /// [JigsawBlockPainting]
-  JigsawBlockPainting widget;
+  final JigsawBlockPainting widget;
 
   bool get blockIsDone => widget.imageBox.isDone;
   PositionedData get posSide => widget.imageBox.posSide;

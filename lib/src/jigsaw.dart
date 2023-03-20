@@ -286,8 +286,6 @@ class JigsawWidgetState extends State<JigsawWidget> {
           jointSize: jointSize,
         );
 
-        log(offset.toString() + "/" + offsetCenter.toString());
-        log(Offset(xAxis, yAxis).toString() + "\n\n");
         images[y].add(
           BlockClass(
             widget: JigsawBlockPainting(
@@ -675,6 +673,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
       if (_index == null || !mounted) return;
       blockNotDone[_index!].blockIsDone = true;
 
+      // set the position as the calculated final matching position
       blockNotDone[_index!].offset = blockNotDone[_index!].offsetDefault;
       _index = null;
 

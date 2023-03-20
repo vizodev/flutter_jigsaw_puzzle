@@ -7,15 +7,15 @@ import '../image_box.dart';
 import '../jigsaw_colors.dart';
 
 class PuzzlePiecePainter extends CustomPainter {
-  PuzzlePiecePainter({
+  const PuzzlePiecePainter({
     this.isForegroundPainter = true,
     this.isJigsawReveal = false,
     required this.imageBox,
   });
 
-  bool isJigsawReveal;
-  bool isForegroundPainter;
-  ImageBox imageBox;
+  final bool isJigsawReveal;
+  final bool isForegroundPainter;
+  final ImageBox imageBox;
 
   @override
   void paint(Canvas canvas, Size size) {
