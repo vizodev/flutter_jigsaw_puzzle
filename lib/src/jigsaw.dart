@@ -614,6 +614,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
     );
   }
 
+  // ignore_for_file: curly_braces_in_flow_control_structures
   Future<void> handleBlockPointerMove(
       Offset position, List<BlockClass> blockNotDone) async {
     if (_index == null || !mounted) {
@@ -630,10 +631,8 @@ class JigsawWidgetState extends State<JigsawWidget> {
     //         aspectRatio: configs.screenAspectRatio!)
     //     : 0;
     final xNormalized = SizeCalculator.getNotchSizeX(context, configs);
-    print(xNormalized);
-    blockNotDone[_index!].offset = configs.screenIsTablet
-        ? offset
-        : Offset(offset.dx - xNormalized, offset.dy);
+    log(xNormalized.toString());
+    blockNotDone[_index!].offset = Offset(offset.dx - xNormalized, offset.dy);
 
     const minSensitivity = 0;
     const maxSensitivity = 1.5;
@@ -652,16 +651,17 @@ class JigsawWidgetState extends State<JigsawWidget> {
         _puzzleAreaKey.currentContext!.findRenderObject() as RenderBox?;
 
     if (renderBox != null) {
-      print("render is null");
       defaultOffsetAdjusted =
           renderBox.localToGlobal(blockNotDone[_index!].offsetDefault);
     }
-    print("$distanceThreshold/ajusted: $defaultOffsetAdjusted");
+    if (configs.debugSnappingDistance)
+      print('$distanceThreshold/ajusted: $defaultOffsetAdjusted');
 
     final matchDistanceOffset =
         offset - (defaultOffsetAdjusted ?? blockNotDone[_index!].offsetDefault);
-    print(
-        "distance offset: $matchDistanceOffset/distance ${matchDistanceOffset.distance}");
+    if (configs.debugSnappingDistance)
+      print(
+          'distance offset: $matchDistanceOffset/distance ${matchDistanceOffset.distance}');
     if (matchDistanceOffset.distance < distanceThreshold) {
       setState(() {
         animatePieceScale = true;

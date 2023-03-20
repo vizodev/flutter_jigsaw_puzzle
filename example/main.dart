@@ -59,7 +59,6 @@ class MyApp extends StatelessWidget {
                   configs: JigsawConfigs(
                     xPieces: 3,
                     yPieces: 3,
-                    screenIsTablet: true,
                     onBlockFitted: () => print('block fitted!'),
                     onFinished: () => print('finished!'),
                   ),

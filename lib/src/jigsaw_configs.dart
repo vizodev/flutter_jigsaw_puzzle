@@ -6,11 +6,8 @@ import 'jigsaw.dart';
 
 class JigsawConfigs {
   const JigsawConfigs({
-    //this.gridSize = 3,
     this.yPieces = 2,
     this.xPieces = 2,
-    this.useMobileXVariation = false,
-    required this.screenIsTablet,
     this.screenAspectRatio,
     this.screenViewPadding,
     //
@@ -25,14 +22,15 @@ class JigsawConfigs {
     this.outlinesWidthFactor = 1,
     this.autoStartDelay,
     this.autoStartOnTapImage = false,
-    this.snapSensitivity = .5,
+    this.debugSnappingDistance = false,
+    this.snapSensitivity = .6,
     this.revealColorsPieces,
     this.backgroundColor,
-  }) : assert(
-            (useMobileXVariation || !screenIsTablet)
-                ? screenAspectRatio != null
-                : true,
-            "When [useMobileXVariation] is enabled, the system will also need the aspect ratio");
+  });
+            // (useMobileXVariation || !screenIsTablet)
+            //     ? screenAspectRatio != null
+            //     : true,
+            // "When [useMobileXVariation] is enabled, the system will also need the aspect ratio");
 
   ///Number of horizontal pieces
   final int xPieces;
@@ -41,13 +39,9 @@ class JigsawConfigs {
   final int yPieces;
 
   /// Because piece matching are having problems/variations when on mobile screen.
-  /// This apply size variation to fix based on screen aspect ratio
-  final bool useMobileXVariation;
-
-  // todo
+  /// We found that the system is using 100% screen size, including the notch size/bottom nav size
   final EdgeInsets? screenViewPadding;
 
-  final bool screenIsTablet;
   final Offset? screenAspectRatio;
 
   ///Colors used in [JigsawReveal], if total pieces ([xGrid] * [yGrid]) < Colors , then pieces will repeat colors
@@ -83,6 +77,9 @@ class JigsawConfigs {
 
   /// Generate blocks on tap image
   final bool autoStartOnTapImage;
+
+  /// Piece matching - related to [snapSensitivity]
+  final bool debugSnappingDistance;
 
   /// Between 0 and 1: how hard to fit new puzzle piece
   final double snapSensitivity;
