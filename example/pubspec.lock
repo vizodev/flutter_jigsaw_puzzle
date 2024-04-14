@@ -12,10 +12,11 @@ packages:
   bitmap:
     dependency: transitive
     description:
-      name: bitmap
-      sha256: ffd06e99690114908922a68b9e9982df380cfbd80067c5c434a6b8c68b055bce
-      url: "https://pub.dev"
-    source: hosted
+      path: "."
+      ref: master
+      resolved-ref: bc0a2456c77c0b1c386a8bd9586692d7489e69ad
+      url: "https://github.com/vizodev/flutter_bitmap.git"
+    source: git
     version: "0.2.0"
   carousel_slider:
     dependency: transitive
@@ -84,7 +85,7 @@ packages:
       path: ".."
       relative: true
     source: path
-    version: "0.2.4"
+    version: "0.2.5"
   image:
     dependency: transitive
     description:
@@ -117,6 +118,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.11.0"
+  palette_generator:
+    dependency: transitive
+    description:
+      name: palette_generator
+      sha256: eb7082b4b97487ebc65b3ad3f6f0b7489b96e76840381ed0e06a46fe7ffd4068
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.3.3+3"
   path:
     dependency: transitive
     description:

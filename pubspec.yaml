@@ -1,19 +1,19 @@
 name: flutter_jigsaw_puzzle
 description: A simple Jigsaw Puzzle lib built with Flutter that supports custom grids of varying sizes.
-version: 0.2.4
+version: 0.2.5
 homepage: https://github.com/o-compilador/flutter_jigsaw_puzzle
 
 environment:
-  sdk: ">=2.17.0 <3.0.0"
+  sdk: ">=2.17.0 <4.0.0"
 
 dependencies:
-  bitmap: ^0.2.0
+  bitmap: # ^0.2.0
 #    path: ../flutter_bitmap
-#    git:
-#      url: https://github.com/vizodev/flutter_bitmap.git
-#      ref: master # branch name
+    git:
+      url: https://github.com/vizodev/flutter_bitmap.git
+      ref: master # branch name
   carousel_slider: ^4.2.1
   flutter: { sdk: flutter }
   image: ^4.1.7
-#  palette_generator: ^0.3.3+2
+  palette_generator: ^0.3.3+3
   uuid: ^4.3.3

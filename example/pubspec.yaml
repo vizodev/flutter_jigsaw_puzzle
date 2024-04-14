@@ -5,7 +5,7 @@ homepage: https://github.com/o-compilador/flutter_jigsaw_puzzle
 publish_to: "none"
 
 environment:
-  sdk: ">=2.16.0 <3.0.0"
+  sdk: ">=2.16.0 <4.0.0"
 
 dependencies:
   flutter:
