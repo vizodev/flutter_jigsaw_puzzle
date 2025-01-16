@@ -117,7 +117,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
   ValueNotifier<List<BlockClass>> blocksNotifier =
       ValueNotifier<List<BlockClass>>(<BlockClass>[]);
 
-  c.CarouselController? _carouselController;
+  c.CarouselSliderController? _carouselController;
   late GlobalKey _carouselKey;
   Widget? get carouselBlocksWidget => _carouselBlocks;
   Widget? _carouselBlocks;
@@ -133,7 +133,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
   @override
   void initState() {
     super.initState();
-    _carouselController = c.CarouselController();
+    _carouselController = c.CarouselSliderController();
     _carouselKey = GlobalKey();
 
     if (widget.configs.autoStartPuzzle == true) {
