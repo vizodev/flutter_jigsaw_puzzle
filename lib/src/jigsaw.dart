@@ -7,8 +7,7 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:ui';
 
-import 'package:bitmap/bitmap.dart';
-import 'package:carousel_slider/carousel_slider.dart';
+import 'package:carousel_slider/carousel_slider.dart' as c;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
@@ -84,7 +83,6 @@ class _JigsawPuzzleState extends State<JigsawPuzzle> {
       imageChild: Image(
         fit: widget.imageFit,
         image: widget.image,
-        filterQuality: FilterQuality.medium,
         excludeFromSemantics: true,
       ),
     );
@@ -119,7 +117,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
   ValueNotifier<List<BlockClass>> blocksNotifier =
       ValueNotifier<List<BlockClass>>(<BlockClass>[]);
 
-  CarouselController? _carouselController;
+  c.CarouselController? _carouselController;
   late GlobalKey _carouselKey;
   Widget? get carouselBlocksWidget => _carouselBlocks;
   Widget? _carouselBlocks;
@@ -135,7 +133,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
   @override
   void initState() {
     super.initState();
-    _carouselController = CarouselController();
+    _carouselController = c.CarouselController();
     _carouselKey = GlobalKey();
 
     if (widget.configs.autoStartPuzzle == true) {
@@ -281,7 +279,6 @@ class JigsawWidgetState extends State<JigsawWidget> {
           image: Image.memory(
             Uint8List.fromList(ui.encodePng(cropped, level: 2)),
             fit: BoxFit.contain, // BoxFit.contain
-            filterQuality: FilterQuality.medium,
             excludeFromSemantics: true,
           ),
           imagePredominantBgColor: imagePredominantBgColor,
@@ -391,10 +388,10 @@ class JigsawWidgetState extends State<JigsawWidget> {
               ),
               width: carouselWidth,
               height: carouselHeight,
-              child: CarouselSlider(
+              child: c.CarouselSlider(
                 key: _carouselKey,
                 carouselController: _carouselController,
-                options: CarouselOptions(
+                options: c.CarouselOptions(
                   aspectRatio: 1,
                   height: carouselHeight,
                   scrollDirection: direction,
@@ -408,7 +405,7 @@ class JigsawWidgetState extends State<JigsawWidget> {
                   viewportFraction: 0.2,
                   enlargeCenterPage: true,
                   enableInfiniteScroll: false,
-                  enlargeStrategy: CenterPageEnlargeStrategy.height,
+                  enlargeStrategy: c.CenterPageEnlargeStrategy.height,
                 ),
                 items: blockNotDone.map((block) {
                   final blockSize = block.widget.imageBox.size;
