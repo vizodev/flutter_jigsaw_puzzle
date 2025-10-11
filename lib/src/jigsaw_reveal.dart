@@ -7,13 +7,14 @@ import 'dart:developer';
 import 'dart:math' as math;
 import 'dart:typed_data';
 
-import 'package:bitmap/bitmap.dart';
+import 'package:bitmap/bitmap_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_jigsaw_puzzle/src/extensions.dart';
 import 'package:flutter_jigsaw_puzzle/src/jigsaw.dart';
 import 'package:flutter_jigsaw_puzzle/src/jigsaw_colors.dart';
+
 // import 'package:image/image.dart' as ui;
 
 import '../flutter_jigsaw_puzzle.dart';
@@ -53,7 +54,6 @@ class _JigsawRevealState extends State<JigsawReveal> {
       imageChild: Image(
         fit: widget.imageFit,
         image: widget.image,
-        filterQuality: FilterQuality.medium,
         excludeFromSemantics: true,
         gaplessPlayback: true,
       ),
@@ -165,7 +165,7 @@ class JigsawRevealWidgetState extends State<JigsawRevealWidget> {
     if (!mounted || screenSize == null) {
       return;
     }
-    print("counter: $counter");
+    print('counter: $counter');
 
     final int xGrid = configs.xPieces;
     final int yGrid = configs.yPieces;
@@ -235,7 +235,7 @@ class JigsawRevealWidgetState extends State<JigsawRevealWidget> {
         Color? pieceColor;
         if (configs.revealColorsPieces != null &&
             configs.revealColorsPieces!.isNotEmpty) {
-          pieceColor = _pieceColors[(_random.nextInt(_pieceColors.length))];
+          pieceColor = _pieceColors[_random.nextInt(_pieceColors.length)];
 
           if (configs.revealColorsPieces!.length >= (xGrid * yGrid)) {
             _pieceColors.remove(pieceColor);
